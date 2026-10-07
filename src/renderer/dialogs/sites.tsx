@@ -1,4 +1,4 @@
-import { PopupProps } from '@/@types/popup';
+import type { RouteProps } from '@/@types/popup';
 import SiteIcon from '@/components/browser/SiteIcon';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,7 +12,7 @@ import { SavedUrl } from '@shared/browser';
 import { Globe2, Import, Trash } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
-const SitesPopup = ({ state, error, run }: PopupProps) => {
+const SitesPopup = ({ state, error, run }: RouteProps) => {
   const searchRef = useRef<HTMLInputElement>(null);
 
   const groups = state.savedUrls.reduce<Record<string, SavedUrl[]>>(

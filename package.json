@@ -16,7 +16,7 @@
   "main": "./release/app/dist/main/main.js",
   "scripts": {
     "build": "electron-vite build",
-    "postinstall": "npm --prefix .erb/tooling ci",
+    "postinstall": "pnpm --prefix .erb/tooling ci",
     "lint": "cross-env NODE_ENV=development eslint . --ext .js,.jsx,.ts,.tsx,.cjs",
     "lint:fix": "cross-env NODE_ENV=development eslint . --ext .js,.jsx,.ts,.tsx,.cjs --fix",
     "package": "electron-vite build && electron-builder build --publish never",
@@ -60,7 +60,8 @@
     "react-router": "^8.4.0",
     "shadcn": "^4.21.1",
     "tailwindcss": "^4.3.3",
-    "tw-animate-css": "^1.4.0"
+    "tw-animate-css": "^1.4.0",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@electron/rebuild": "^4.2.0",
@@ -172,7 +173,7 @@
     },
     "packageManager": {
       "name": "pnpm",
-      "version": ">=10.0.0",
+      "version": ">=12.9.1",
       "onFail": "error"
     }
   },
@@ -189,7 +190,7 @@
   },
   "engines": {
     "node": ">=24.0.0",
-    "npm": ">=10.0.0"
+    "pnpm": ">=10.0.0"
   },
   "type": "commonjs"
 }

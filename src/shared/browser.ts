@@ -33,6 +33,8 @@ export interface BrowserTab {
 
 export interface BrowserState {
   downloads: BrowserDownload[];
+  downloadDirectory: string;
+  downloadDirectoryManaged: boolean;
   tabs: BrowserTab[];
   activeTabId: string;
   canGoBack: boolean;
@@ -43,6 +45,11 @@ export interface BrowserState {
   popup: PopupKind | null;
 }
 
+export interface BrowserSnapshot {
+  revision: number;
+  state: BrowserState;
+}
+
 export type BrowserCommand =
   | {
       type: 'download-action';
@@ -50,6 +57,7 @@ export type BrowserCommand =
       action: 'pause' | 'resume' | 'cancel' | 'show';
     }
   | { type: 'clear-downloads' }
+  | { type: 'select-download-directory' | 'reset-download-directory' }
   | { type: 'new-tab'; url?: string }
   | { type: 'navigate'; url: string; saved?: SavedUrl }
   | { type: 'select-tab'; id: string }

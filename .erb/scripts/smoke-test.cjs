@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict');
 const { spawn, spawnSync } = require('node:child_process');
-const { existsSync, mkdtempSync, rmSync } = require('node:fs');
+const { existsSync, mkdtempSync, readFileSync, rmSync } = require('node:fs');
 const { createServer } = require('node:http');
 const { tmpdir } = require('node:os');
 const { dirname, join, resolve: resolvePath, sep } = require('node:path');
@@ -121,7 +121,7 @@ async function evaluateTarget(target, expression) {
         JSON.stringify({
           id: 1,
           method: 'Runtime.evaluate',
-          params: { expression, returnByValue: true },
+          params: { expression, awaitPromise: true, returnByValue: true },
         }),
       );
     });
@@ -204,7 +204,7 @@ async function main() {
   await waitFor(
     () =>
       evaluate(
-        'window.electron.browser.getState().then((state) => state.tabs.length === 1)',
+        'window.electron.browser.getState().then(({ state }) => state.tabs.length === 1)',
       ),
     'initial tab',
   );
@@ -216,7 +216,7 @@ async function main() {
   await waitFor(
     () =>
       evaluate(
-        'window.electron.browser.getState().then((state) => state.tabs[0].title === "Site de teste" && !state.tabs[0].loading)',
+        'window.electron.browser.getState().then(({ state }) => state.tabs[0].title === "Site de teste" && !state.tabs[0].loading)',
       ),
     'site navigation',
   );
@@ -290,7 +290,7 @@ async function main() {
   const downloaded = await waitFor(
     () =>
       evaluate(
-        'window.electron.browser.getState().then((state) => state.downloads.find((item) => item.name === "smoke-download.txt" && item.status === "completed"))',
+        'window.electron.browser.getState().then(({ state }) => state.downloads.find((item) => item.name === "smoke-download.txt" && item.status === "completed"))',
       ),
     'completed site download',
     20_000,
@@ -304,7 +304,7 @@ async function main() {
   const renamedDownload = await waitFor(
     () =>
       evaluate(
-        'window.electron.browser.getState().then((state) => state.downloads.find((item) => item.name === "smoke-download (1).txt" && item.status === "completed"))',
+        'window.electron.browser.getState().then(({ state }) => state.downloads.find((item) => item.name === "smoke-download (1).txt" && item.status === "completed"))',
       ),
     'download name after destination collision',
     20_000,
@@ -314,7 +314,7 @@ async function main() {
   const popupDownload = await waitFor(
     () =>
       evaluate(
-        'window.electron.browser.getState().then((state) => state.downloads.find((item) => item.name === "smoke-popup-download.txt" && item.status === "completed"))',
+        'window.electron.browser.getState().then(({ state }) => state.downloads.find((item) => item.name === "smoke-popup-download.txt" && item.status === "completed"))',
       ),
     'completed popup download',
     20_000,
@@ -419,7 +419,7 @@ async function main() {
   await waitFor(
     () =>
       evaluate(
-        'window.electron.browser.getState().then((state) => state.savedUrls[0]?.name === "Base" && state.tabs[0].savedTitle === "Teste / Base")',
+        'window.electron.browser.getState().then(({ state }) => state.savedUrls[0]?.name === "Base" && state.tabs[0].savedTitle === "Teste / Base")',
       ),
     'saved environment',
   );
@@ -428,7 +428,7 @@ async function main() {
   );
   assert.equal(
     await evaluate(
-      'window.electron.browser.getState().then((state) => state.theme)',
+      'window.electron.browser.getState().then(({ state }) => state.theme)',
     ),
     'dark',
   );
@@ -438,7 +438,7 @@ async function main() {
   await waitFor(
     () =>
       evaluate(
-        'window.electron.browser.getState().then((state) => state.popup === "theme")',
+        'window.electron.browser.getState().then(({ state }) => state.popup === "theme")',
       ),
     'native theme popup',
   );
@@ -460,7 +460,7 @@ async function main() {
   await waitFor(
     () =>
       evaluate(
-        'window.electron.browser.getState().then((state) => state.popup === null)',
+        'window.electron.browser.getState().then(({ state }) => state.popup === null)',
       ),
     'popup close on blur',
     5_000,
@@ -474,7 +474,7 @@ async function main() {
   await waitFor(
     () =>
       evaluate(
-        'window.electron.browser.getState().then((state) => state.popup === null)',
+        'window.electron.browser.getState().then(({ state }) => state.popup === null)',
       ),
     'popup toggle close',
   );
@@ -523,7 +523,7 @@ async function main() {
   await waitFor(
     () =>
       evaluate(
-        'window.electron.browser.getState().then((state) => state.tabs.length === 2 && state.activeTabId === "2")',
+        'window.electron.browser.getState().then(({ state }) => state.tabs.length === 2 && state.activeTabId === "2")',
       ),
     'new tab',
   );
@@ -531,7 +531,7 @@ async function main() {
   await waitFor(
     () =>
       evaluate(
-        'window.electron.browser.getState().then((state) => state.activeTabId === "1")',
+        'window.electron.browser.getState().then(({ state }) => state.activeTabId === "1")',
       ),
     'tab switch',
   );
@@ -539,11 +539,106 @@ async function main() {
   await waitFor(
     () =>
       evaluate(
-        'window.electron.browser.getState().then((state) => state.tabs.length === 1 && state.activeTabId === "2")',
+        'window.electron.browser.getState().then(({ state }) => state.tabs.length === 1 && state.activeTabId === "2")',
       ),
     'tab close',
   );
+  await evaluate(
+    `window.electron.browser.command({type:'new-tab',url:${JSON.stringify(siteUrl)}})`,
+  );
+  await evaluate('window.electron.browser.command({type:"select-tab",id:"2"})');
+  const settings = JSON.parse(
+    readFileSync(join(dataDir, 'browser-settings.json'), 'utf8'),
+  );
+  assert.deepEqual(settings.session, { urls: ['', siteUrl], activeIndex: 0 });
+  assert.equal(
+    await evaluate(
+      `window.electron.browser.getState().then(({state}) => state.downloadDirectoryManaged && state.downloadDirectory === ${JSON.stringify(dataDir)})`,
+    ),
+    true,
+  );
   assert.deepEqual(exceptions, []);
+  socket.send(
+    JSON.stringify({
+      id: ++id,
+      method: 'Runtime.evaluate',
+      params: {
+        expression: 'window.electron.browser.command({type:"close-window"})',
+      },
+    }),
+  );
+  await waitFor(() => {
+    const saved = JSON.parse(
+      readFileSync(join(dataDir, 'browser-settings.json'), 'utf8'),
+    );
+    return saved.window?.width >= 640 && saved.window?.height >= 420;
+  }, 'saved window');
+  for (let attempt = 0; attempt < 40 && !exited; attempt += 1) await delay(250);
+  assert.equal(exited, true, `Electron did not exit: ${output}`);
+  exited = false;
+  const reopened = spawn(
+    packagedApp || process.execPath,
+    packagedApp
+      ? [`--remote-debugging-port=${debugPort}`]
+      : [electronVite, 'dev', '--remoteDebuggingPort', String(debugPort)],
+    {
+      detached: !windows,
+      env: {
+        ...process.env,
+        PORT: String(port),
+        SNK_BROWSER_DATA_DIR: dataDir,
+        SNK_BROWSER_DOWNLOAD_DIR: dataDir,
+      },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    },
+  );
+  reopened.stdout.on('data', (data) => {
+    output += data;
+  });
+  reopened.stderr.on('data', (data) => {
+    output += data;
+  });
+  reopened.on('exit', () => {
+    exited = true;
+  });
+  try {
+    const restoredTarget = await waitFor(async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:${debugPort}/json/list`);
+        const targets = await response.json();
+        return targets.find(
+          (entry) =>
+            entry.type === 'page' &&
+            (packagedApp
+              ? entry.url.startsWith('file:') &&
+                entry.url.includes('index.html')
+              : entry.url.startsWith(`http://localhost:${port}`)),
+        );
+      } catch {
+        return null;
+      }
+    }, 'reopened renderer');
+    await waitFor(async () => {
+      try {
+        return await evaluateTarget(
+          restoredTarget,
+          `window.electron.browser.getState().then(({state}) => state.tabs.length === 2 && state.tabs[0].url === '' && state.tabs[1].url === ${JSON.stringify(siteUrl)} && state.activeTabId === state.tabs[0].id)`,
+        );
+      } catch {
+        return false;
+      }
+    }, 'restored tabs');
+  } finally {
+    if (windows)
+      spawnSync('taskkill', ['/pid', String(reopened.pid), '/T', '/F']);
+    else if (reopened.pid) {
+      try {
+        process.kill(-reopened.pid, 'SIGTERM');
+      } catch (error) {
+        if (error.code !== 'ESRCH') console.error(error);
+      }
+    }
+  }
   console.log(
     'Electron smoke passed: tabs, popups, downloads, saved bases, theme, Ruffle, and no renderer exceptions.',
   );

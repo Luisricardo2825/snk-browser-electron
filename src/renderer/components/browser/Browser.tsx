@@ -1,17 +1,11 @@
 import { useEffect, useRef } from 'react';
-import type { BrowserCommand, BrowserState } from '@shared/browser';
 import { Globe2 } from 'lucide-react';
 import BrowserTitleBar from './titlebar';
+import { useOutletContext } from 'react-router';
+import type { RouteProps } from '@/@types/popup';
 
-function BrowserApp({
-  state,
-  error,
-  run,
-}: {
-  state: BrowserState | null;
-  error: string;
-  run: (command: BrowserCommand) => Promise<void>;
-}) {
+function BrowserApp() {
+  const { state, error, run } = useOutletContext<RouteProps>();
   const tab = state?.tabs.find((item) => item.id === state.activeTabId);
 
   const addressRef = useRef<HTMLInputElement>(null);

@@ -12,8 +12,8 @@ import { BaseUIEvent } from '@base-ui/react';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { PopupProps } from '@/@types/popup';
-const SaveSitePopup = ({ state, run }: PopupProps) => {
+import { RouteProps } from '@/@types/popup';
+const SaveSitePopup = ({ state, run }: RouteProps) => {
   const tab = state.tabs.find((item) => item.id === state.activeTabId);
 
   const [name, setName] = useState(() => {

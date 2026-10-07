@@ -6,6 +6,8 @@ import type { BrowserState } from '../shared/browser';
 
 const state: BrowserState = {
   downloads: [],
+  downloadDirectory: '',
+  downloadDirectoryManaged: false,
   tabs: [
     {
       id: '1',
@@ -29,7 +31,7 @@ test('navega pela barra de endereço e abre nova aba', async () => {
   const command = jest.fn().mockResolvedValue(undefined);
   window.electron = {
     browser: {
-      getState: jest.fn().mockResolvedValue(state),
+      getState: jest.fn().mockResolvedValue({ revision: 1, state }),
       command,
       onState: jest.fn().mockReturnValue(() => {}),
     },

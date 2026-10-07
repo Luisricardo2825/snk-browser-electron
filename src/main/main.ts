@@ -9,11 +9,12 @@
  * `./release/app/dist/main/main.js` using electron-vite.
  */
 import path from 'path';
-import { app, BrowserWindow, Menu } from 'electron';
+import { app, BrowserWindow, Menu, screen } from 'electron';
 import log from 'electron-log';
-import { attachBrowserWindow } from './browser';
-import { registerRuffleScheme, serveRuffleResources } from './ruffle';
-import { resolveHtmlPath } from './util';
+import { attachBrowserWindow } from './browser/browser';
+import BrowserSettings from './browser/BrowserSettings';
+import { registerRuffleScheme, serveRuffleResources } from './ruffle/ruffle';
+import { resolveHtmlPath } from './lib/util';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -51,10 +52,25 @@ const createWindow = async () => {
     return path.join(RESOURCES_PATH, ...paths);
   };
 
+  const settings = new BrowserSettings();
+  const saved = settings.windowState;
+  const visible =
+    saved &&
+    screen
+      .getAllDisplays()
+      .some(
+        ({ workArea }) =>
+          saved.x + saved.width > workArea.x + 64 &&
+          saved.x < workArea.x + workArea.width - 64 &&
+          saved.y + saved.height > workArea.y + 64 &&
+          saved.y < workArea.y + workArea.height - 64,
+      );
+
   mainWindow = new BrowserWindow({
     show: false,
-    width: 1200,
-    height: 800,
+    ...(visible ? { x: saved.x, y: saved.y } : {}),
+    width: visible ? saved.width : 1200,
+    height: visible ? saved.height : 800,
     minWidth: 640,
     minHeight: 420,
     frame: false,
@@ -70,7 +86,33 @@ const createWindow = async () => {
     },
   });
 
-  attachBrowserWindow(mainWindow);
+  const window = mainWindow;
+  if (saved?.maximized) window.maximize();
+  let maximized = window.isMaximized();
+  let saveTimer: ReturnType<typeof setTimeout> | undefined;
+  const saveWindowState = () => {
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = undefined;
+    if (window.isDestroyed()) return;
+    const bounds = window.getNormalBounds();
+    settings.setWindowState({ ...bounds, maximized });
+  };
+  const scheduleSave = () => {
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveWindowState, 300);
+  };
+  window.on('move', scheduleSave);
+  window.on('resize', scheduleSave);
+  window.on('maximize', () => {
+    maximized = true;
+    scheduleSave();
+  });
+  window.on('unmaximize', () => {
+    maximized = false;
+    scheduleSave();
+  });
+  window.on('close', saveWindowState);
+  attachBrowserWindow(window, settings);
 
   mainWindow.on('ready-to-show', () => {
     if (!mainWindow) {

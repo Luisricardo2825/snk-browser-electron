@@ -1,4 +1,4 @@
-import { PopupProps } from '@/@types/popup';
+import type { RouteProps } from '@/@types/popup';
 import {
   Command,
   CommandGroup,
@@ -6,7 +6,7 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { Moon, Sun } from 'lucide-react';
-const ThemePopup = ({ run }: PopupProps) => {
+const ThemePopup = ({ run }: RouteProps) => {
   return (
     <Command className="h-screen rounded-none border bg-popover text-popover-foreground">
       <CommandList className="max-h-none">

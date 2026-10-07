@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '../components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { PopupProps } from '@/@types/popup';
+import { RouteProps } from '@/@types/popup';
 
 function bytes(value: number): string {
   if (value < 1024) return `${value} B`;
@@ -16,7 +16,7 @@ function bytes(value: number): string {
   return `${(value / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function DownloadsPopup({ state, error, run }: PopupProps) {
+export function DownloadsPopup({ state, error, run }: RouteProps) {
   const action = (id: string, value: 'pause' | 'resume' | 'cancel' | 'show') =>
     run({ type: 'download-action', id, action: value });
   const finished = state.downloads.some(
@@ -174,6 +174,36 @@ export function DownloadsPopup({ state, error, run }: PopupProps) {
           })
         )}
       </div>
+      <footer className="shrink-0 border-t px-3 py-2 text-xs">
+        <p
+          className="truncate text-muted-foreground"
+          title={state.downloadDirectory}
+        >
+          {state.downloadDirectory}
+        </p>
+        {state.downloadDirectoryManaged ? (
+          <p className="text-muted-foreground">
+            Definida por SNK_BROWSER_DOWNLOAD_DIR
+          </p>
+        ) : (
+          <div className="mt-1 flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => void run({ type: 'select-download-directory' })}
+            >
+              Escolher pasta
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => void run({ type: 'reset-download-directory' })}
+            >
+              Usar padrão
+            </Button>
+          </div>
+        )}
+      </footer>
     </div>
   );
 }

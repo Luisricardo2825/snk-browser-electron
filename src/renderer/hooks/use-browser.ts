@@ -1,17 +1,12 @@
-import type { BrowserCommand, BrowserState } from '@shared/browser';
+import type { BrowserCommand } from '@shared/browser';
 import { useEffect, useState } from 'react';
+import type { browserLoader } from '@/routes/browser-loader';
+import { useBrowserStore } from '@/store/browser-store';
 
-export function useBrowser() {
-  const [state, setState] = useState<BrowserState | null>(null);
-  const [error, setError] = useState('');
-  useEffect(() => {
-    const stop = window.electron.browser.onState(setState);
-    void window.electron.browser
-      .getState()
-      .then(setState)
-      .catch((cause) => setError(String(cause)));
-    return stop;
-  }, []);
+export function useBrowser(initial: Awaited<ReturnType<typeof browserLoader>>) {
+  const state =
+    useBrowserStore((store) => store.snapshot?.state) ?? initial.state;
+  const [error, setError] = useState(initial.error);
   const run = (command: BrowserCommand): Promise<void> => {
     setError('');
     return window.electron.browser
