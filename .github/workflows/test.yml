@@ -36,7 +36,7 @@ jobs:
         run: |
           pnpm run package
           pnpm run lint
-          pnpm exec tsc -- --noEmit
+          pnpm exec tsc --noEmit
           pnpm test
 
       - name: Verify Electron startup (Linux)
