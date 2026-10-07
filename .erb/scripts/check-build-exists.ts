@@ -2,10 +2,12 @@
 import path from 'path';
 import fs from 'fs';
 import { TextEncoder, TextDecoder } from 'node:util';
-import paths from '../configs/paths';
 
-const mainPath = path.join(paths.distMainPath, 'main.js');
-const rendererPath = path.join(paths.distRendererPath, 'renderer.js');
+const mainPath = path.join(__dirname, '../../release/app/dist/main/main.js');
+const rendererPath = path.join(
+  __dirname,
+  '../../release/app/dist/renderer/renderer.js',
+);
 
 if (!fs.existsSync(mainPath)) {
   throw new Error(

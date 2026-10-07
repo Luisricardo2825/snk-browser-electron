@@ -16,7 +16,7 @@
   "main": "./release/app/dist/main/main.js",
   "scripts": {
     "build": "electron-vite build",
-    "postinstall": "pnpm --prefix .erb/tooling ci",
+    "postinstall": "npm --prefix .erb/tooling ci",
     "lint": "cross-env NODE_ENV=development eslint . --ext .js,.jsx,.ts,.tsx,.cjs",
     "lint:fix": "cross-env NODE_ENV=development eslint . --ext .js,.jsx,.ts,.tsx,.cjs --fix",
     "package": "electron-vite build && electron-builder build --publish never",

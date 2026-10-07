@@ -4,10 +4,5 @@
   "description": "Navegador de ambientes Sankhya em Electron",
   "license": "MIT",
   "main": "./dist/main/main.js",
-  "scripts": {
-    "rebuild": "node -r ../../.erb/scripts/register.cjs ../../.erb/scripts/electron-rebuild.js",
-    "postinstall": "npm run rebuild && npm run link-modules",
-    "link-modules": "node -r ../../.erb/scripts/register.cjs ../../.erb/scripts/link-modules.ts"
-  },
   "dependencies": {}
 }

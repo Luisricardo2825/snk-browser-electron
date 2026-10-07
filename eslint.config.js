@@ -23,6 +23,7 @@ module.exports = [
       '.erb/dll/**',
       'release/app/dist/**',
       'release/build/**',
+      'assets/ruffle/**',
       'coverage/**',
       '**/*.css.d.ts',
       '**/*.sass.d.ts',
