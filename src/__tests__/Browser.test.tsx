@@ -1,8 +1,12 @@
 import "@testing-library/jest-dom";
 // eslint-disable-next-line import/named -- reexported from @testing-library/dom
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import App from "../renderer/App";
+import { useOutletContext } from "react-router";
+import BrowserApp from "../renderer/components/browser/Browser";
+import { useBrowser } from "../renderer/hooks/use-browser";
 import type { BrowserState } from "../shared/browser";
+
+jest.mock("react-router", () => ({ useOutletContext: jest.fn() }));
 
 const state: BrowserState = {
   downloads: [],
@@ -37,7 +41,13 @@ test("navega pela barra de endereço e abre nova aba", async () => {
     },
   };
 
-  render(<App />);
+  function BrowserUnderTest() {
+    const browser = useBrowser({ state, error: "" });
+    (useOutletContext as jest.Mock).mockReturnValue(browser);
+    return <BrowserApp />;
+  }
+
+  render(<BrowserUnderTest />);
   await screen.findByRole("button", { name: "Fechar Nova aba" });
   fireEvent.change(screen.getByRole("textbox", { name: "URL do Sankhya" }), {
     target: { value: "example.com" },
