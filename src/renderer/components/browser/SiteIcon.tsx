@@ -1,5 +1,5 @@
-import { Globe2 } from 'lucide-react';
-import { useState } from 'react';
+import { Globe2 } from "lucide-react";
+import { useState } from "react";
 
 function SiteIcon({ url }: { url: string }) {
   const [failed, setFailed] = useState(false);

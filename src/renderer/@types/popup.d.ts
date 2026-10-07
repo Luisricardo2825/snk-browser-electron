@@ -1,4 +1,4 @@
-import { BrowserCommand, BrowserState } from '@shared/browser';
+import { BrowserCommand, BrowserState } from "@shared/browser";
 
 export type RouteProps = {
   state: BrowserState;

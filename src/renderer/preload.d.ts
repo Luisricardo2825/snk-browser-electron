@@ -1,4 +1,4 @@
-import { ElectronHandler } from '../main/preload/preload';
+import { ElectronHandler } from "../main/preload/preload";
 
 declare global {
   interface Window {

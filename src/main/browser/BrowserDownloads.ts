@@ -1,18 +1,18 @@
-import { app, BrowserWindow, dialog, shell } from 'electron';
-import { randomUUID } from 'node:crypto';
+import { app, BrowserWindow, dialog, shell } from "electron";
+import { randomUUID } from "node:crypto";
 import {
   existsSync,
   mkdirSync,
   readFileSync,
   renameSync,
   writeFileSync,
-} from 'node:fs';
-import path from 'node:path';
-import type { BrowserCommand, BrowserDownload } from '@shared/browser';
-import BrowserSettings from './BrowserSettings';
+} from "node:fs";
+import path from "node:path";
+import type { BrowserCommand, BrowserDownload } from "@shared/browser";
+import BrowserSettings from "./BrowserSettings";
 
 const downloadsPath = () =>
-  path.join(app.getPath('userData'), 'browser-downloads.json');
+  path.join(app.getPath("userData"), "browser-downloads.json");
 
 export default class BrowserDownloads {
   readonly downloads = this.readDownloads();
@@ -24,11 +24,11 @@ export default class BrowserDownloads {
     private readonly settings: BrowserSettings,
     private readonly onChange: () => void,
   ) {
-    session.on('will-download', this.onDownload);
+    session.on("will-download", this.onDownload);
   }
 
   dispose(): void {
-    this.session.removeListener('will-download', this.onDownload);
+    this.session.removeListener("will-download", this.onDownload);
   }
 
   snapshot(): BrowserDownload[] {
@@ -41,7 +41,7 @@ export default class BrowserDownloads {
     url: string,
   ): Promise<void> {
     const directory = this.settings.downloadDirectory;
-    const filename = path.basename(new URL(url).pathname) || 'download';
+    const filename = path.basename(new URL(url).pathname) || "download";
     const result = await dialog.showSaveDialog(window, {
       defaultPath: path.join(directory, filename),
     });
@@ -61,25 +61,25 @@ export default class BrowserDownloads {
 
   action(
     id: string,
-    action: Extract<BrowserCommand, { type: 'download-action' }>['action'],
+    action: Extract<BrowserCommand, { type: "download-action" }>["action"],
   ): void {
     const download = this.downloads.find((entry) => entry.id === id);
-    if (!download) throw new Error('Download não encontrado.');
+    if (!download) throw new Error("Download não encontrado.");
     const item = this.downloadItems.get(download.id);
-    if (action === 'show') {
+    if (action === "show") {
       if (!download.path || !existsSync(download.path))
-        throw new Error('Arquivo ainda não está disponível.');
+        throw new Error("Arquivo ainda não está disponível.");
       shell.showItemInFolder(download.path);
     }
-    if (action === 'cancel' && item) item.cancel();
-    if (action === 'pause' && item) {
+    if (action === "cancel" && item) item.cancel();
+    if (action === "pause" && item) {
       item.pause();
-      download.status = 'paused';
+      download.status = "paused";
       this.onChange();
     }
-    if (action === 'resume' && item && item.canResume()) {
+    if (action === "resume" && item && item.canResume()) {
       item.resume();
-      download.status = 'progressing';
+      download.status = "progressing";
       this.onChange();
     }
   }
@@ -131,7 +131,7 @@ export default class BrowserDownloads {
       path: destination,
       receivedBytes: item.getReceivedBytes(),
       totalBytes: item.getTotalBytes(),
-      status: 'progressing',
+      status: "progressing",
     };
     this.downloads.unshift(download);
     this.downloadItems.set(download.id, item);
@@ -142,16 +142,16 @@ export default class BrowserDownloads {
       download.totalBytes = item.getTotalBytes();
       this.onChange();
     };
-    item.on('updated', (_updatedEvent, state) => {
+    item.on("updated", (_updatedEvent, state) => {
       download.status =
-        state === 'interrupted'
-          ? 'interrupted'
+        state === "interrupted"
+          ? "interrupted"
           : item.isPaused()
-            ? 'paused'
-            : 'progressing';
+            ? "paused"
+            : "progressing";
       update();
     });
-    item.once('done', (_doneEvent, state) => {
+    item.once("done", (_doneEvent, state) => {
       download.status = state;
       this.downloadItems.delete(download.id);
       update();
@@ -178,17 +178,17 @@ export default class BrowserDownloads {
 
   private readDownloads(): BrowserDownload[] {
     try {
-      const data: unknown = JSON.parse(readFileSync(downloadsPath(), 'utf8'));
+      const data: unknown = JSON.parse(readFileSync(downloadsPath(), "utf8"));
       if (!Array.isArray(data)) return [];
       return data.filter(
         (entry): entry is BrowserDownload =>
           entry &&
-          typeof entry.id === 'string' &&
-          typeof entry.name === 'string' &&
-          typeof entry.path === 'string' &&
-          typeof entry.receivedBytes === 'number' &&
-          typeof entry.totalBytes === 'number' &&
-          ['completed', 'cancelled', 'interrupted'].includes(entry.status),
+          typeof entry.id === "string" &&
+          typeof entry.name === "string" &&
+          typeof entry.path === "string" &&
+          typeof entry.receivedBytes === "number" &&
+          typeof entry.totalBytes === "number" &&
+          ["completed", "cancelled", "interrupted"].includes(entry.status),
       );
     } catch {
       return [];

@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import { Globe2, LoaderCircle, Plus, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import type { BrowserTab } from '../../../shared/browser';
+import { useEffect, useRef, useState } from "react";
+import { Globe2, LoaderCircle, Plus, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import type { BrowserTab } from "../../../shared/browser";
 
 function TabIcon({ url, loading }: { url: string; loading: boolean }) {
   const [failed, setFailed] = useState(false);
@@ -37,7 +37,7 @@ export function BrowserTabs({
   useEffect(() => {
     strip.current
       ?.querySelector('[data-active="true"]')
-      ?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+      ?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
   }, [activeTabId]);
 
   return (
@@ -48,7 +48,7 @@ export function BrowserTabs({
         onWheel={(event) =>
           strip.current?.scrollBy({
             left: Math.sign(event.deltaY) * 160,
-            behavior: 'smooth',
+            behavior: "smooth",
           })
         }
       >

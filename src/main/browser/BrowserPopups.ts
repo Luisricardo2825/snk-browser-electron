@@ -1,8 +1,8 @@
-import { BrowserWindow } from 'electron';
-import path from 'node:path';
-import type { PopupAnchor, PopupKind } from '@shared/browser';
-import { resolveHtmlPath } from '@main/lib/util';
-import BrowserSettings from './BrowserSettings';
+import { BrowserWindow } from "electron";
+import path from "node:path";
+import type { PopupAnchor, PopupKind } from "@shared/browser";
+import { resolveHtmlPath } from "@main/lib/util";
+import BrowserSettings from "./BrowserSettings";
 
 export default class BrowserPopups {
   private popupWindow: BrowserWindow | null = null;
@@ -52,7 +52,7 @@ export default class BrowserPopups {
     const anchor = this.popupAnchor;
     let x = parent.x + (parent.width - width) / 2;
     let y = parent.y + (parent.height - height) / 2;
-    if (anchor && this.popupKind !== 'save') {
+    if (anchor && this.popupKind !== "save") {
       x = parent.x + anchor.x;
       y = parent.y + anchor.y + anchor.height;
       if (x + width > right) x = right - width;
@@ -91,9 +91,9 @@ export default class BrowserPopups {
       resizable: false,
       show: false,
       skipTaskbar: true,
-      backgroundColor: this.settings.theme === 'dark' ? '#1b1b1b' : '#ffffff',
+      backgroundColor: this.settings.theme === "dark" ? "#1b1b1b" : "#ffffff",
       webPreferences: {
-        preload: path.join(__dirname, '../preload/preload.js'),
+        preload: path.join(__dirname, "../preload/preload.js"),
         contextIsolation: true,
         nodeIntegration: false,
         sandbox: true,
@@ -105,21 +105,21 @@ export default class BrowserPopups {
     this.popupWindow = popup;
     this.popupKind = kind;
     this.popupAnchor = anchor;
-    popup.on('blur', () => {
+    popup.on("blur", () => {
       this.popupBlurTimer = setTimeout(() => {
         if (this.popupWindow === popup && !popup.isFocused()) this.closePopup();
       }, 120);
     });
-    popup.on('closed', () => {
+    popup.on("closed", () => {
       if (this.popupWindow === popup) this.closePopup();
     });
-    popup.once('ready-to-show', () => {
+    popup.once("ready-to-show", () => {
       if (this.popupWindow !== popup) return;
       this.positionPopup();
       popup.show();
       popup.focus();
     });
-    const url = new URL(resolveHtmlPath('index.html'));
+    const url = new URL(resolveHtmlPath("index.html"));
     url.hash = `/popup/${kind}`;
     void popup.loadURL(url.href).catch((error: unknown) => {
       if (this.popupWindow === popup) {
@@ -131,13 +131,13 @@ export default class BrowserPopups {
 
     function getPopupDimensions(): [number, number] {
       switch (kind) {
-        case 'sites':
+        case "sites":
           return [340, 420];
-        case 'theme':
+        case "theme":
           return [190, 144];
-        case 'downloads':
+        case "downloads":
           return [300, 300];
-        case 'save':
+        case "save":
           return [480, 330];
       }
     }

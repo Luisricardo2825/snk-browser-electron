@@ -30,7 +30,7 @@
     "extends browserslist-config-erb"
   ],
   "prettier": {
-    "singleQuote": true,
+    "singleQuote": false,
     "overrides": [
       {
         "files": [

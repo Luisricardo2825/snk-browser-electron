@@ -1,12 +1,12 @@
 // Check if the renderer and main bundles are built
-import path from 'path';
-import fs from 'fs';
-import { TextEncoder, TextDecoder } from 'node:util';
+import path from "path";
+import fs from "fs";
+import { TextEncoder, TextDecoder } from "node:util";
 
-const mainPath = path.join(__dirname, '../../release/app/dist/main/main.js');
+const mainPath = path.join(__dirname, "../../release/app/dist/main/main.js");
 const rendererPath = path.join(
   __dirname,
-  '../../release/app/dist/renderer/renderer.js',
+  "../../release/app/dist/renderer/renderer.js",
 );
 
 if (!fs.existsSync(mainPath)) {

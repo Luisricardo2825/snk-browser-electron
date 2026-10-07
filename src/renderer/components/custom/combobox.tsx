@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   Combobox,
   ComboboxContent,
@@ -8,10 +8,10 @@ import {
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
-} from '@/components/ui/combobox';
-import { ComboboxRoot } from '@base-ui/react';
-import { Plus } from 'lucide-react';
-import { useState } from 'react';
+} from "@/components/ui/combobox";
+import { ComboboxRoot } from "@base-ui/react";
+import { Plus } from "lucide-react";
+import { useState } from "react";
 
 export type ComboboxPopupItem = {
   code: string;
@@ -37,7 +37,7 @@ export function ComboboxPopup({
     props.value ?? null,
   );
   const [localItems, setLocalItems] = useState(items);
-  const [inputValue, setInputValue] = useState<string>('');
+  const [inputValue, setInputValue] = useState<string>("");
 
   function createNewItem() {
     const newItem: ComboboxPopupItem = {

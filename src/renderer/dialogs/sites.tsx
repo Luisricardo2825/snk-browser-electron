@@ -1,16 +1,16 @@
-import type { RouteProps } from '@/@types/popup';
-import SiteIcon from '@/components/browser/SiteIcon';
-import { Button } from '@/components/ui/button';
+import type { RouteProps } from "@/@types/popup";
+import SiteIcon from "@/components/browser/SiteIcon";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
-} from '@/components/ui/command';
-import { SavedUrl } from '@shared/browser';
-import { Globe2, Import, Trash } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+} from "@/components/ui/command";
+import { SavedUrl } from "@shared/browser";
+import { Globe2, Import, Trash } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 const SitesPopup = ({ state, error, run }: RouteProps) => {
   const searchRef = useRef<HTMLInputElement>(null);
@@ -23,7 +23,7 @@ const SitesPopup = ({ state, error, run }: RouteProps) => {
     {},
   );
   const choose = (entry?: SavedUrl) => {
-    void run({ type: 'navigate', url: entry?.url ?? '', saved: entry });
+    void run({ type: "navigate", url: entry?.url ?? "", saved: entry });
   };
 
   useEffect(() => {
@@ -47,7 +47,7 @@ const SitesPopup = ({ state, error, run }: RouteProps) => {
                 value={`${entry.folder} ${entry.name} ${entry.url}`}
                 onSelect={() => choose(entry)}
               >
-                <SiteIcon key={entry?.url ?? ''} url={entry?.url ?? ''} />
+                <SiteIcon key={entry?.url ?? ""} url={entry?.url ?? ""} />
                 <span className="min-w-0 flex-1 truncate">{entry.name}</span>
                 <Button
                   variant="ghost"
@@ -58,7 +58,7 @@ const SitesPopup = ({ state, error, run }: RouteProps) => {
                   onClick={(event) => {
                     event.preventDefault();
                     event.stopPropagation();
-                    void run({ type: 'remove-environment', entry });
+                    void run({ type: "remove-environment", entry });
                   }}
                 >
                   <Trash />
@@ -73,7 +73,7 @@ const SitesPopup = ({ state, error, run }: RouteProps) => {
           variant="ghost"
           size="sm"
           className="w-full justify-start"
-          onClick={() => void run({ type: 'import-environments' })}
+          onClick={() => void run({ type: "import-environments" })}
         >
           <Import /> Importar bases em JSON
         </Button>

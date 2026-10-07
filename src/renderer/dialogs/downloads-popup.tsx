@@ -1,10 +1,10 @@
-import { FolderOpen, Pause, Play, Trash2, X } from 'lucide-react';
-import { Fragment, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Badge } from '../components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { RouteProps } from '@/@types/popup';
+import { FolderOpen, Pause, Play, Trash2, X } from "lucide-react";
+import { Fragment, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "../components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { RouteProps } from "@/@types/popup";
 
 function bytes(value: number): string {
   if (value < 1024) return `${value} B`;
@@ -17,34 +17,34 @@ function bytes(value: number): string {
 }
 
 export function DownloadsPopup({ state, error, run }: RouteProps) {
-  const action = (id: string, value: 'pause' | 'resume' | 'cancel' | 'show') =>
-    run({ type: 'download-action', id, action: value });
+  const action = (id: string, value: "pause" | "resume" | "cancel" | "show") =>
+    run({ type: "download-action", id, action: value });
   const finished = state.downloads.some(
     (download) =>
-      download.status === 'completed' ||
-      download.status === 'cancelled' ||
-      download.status === 'interrupted',
+      download.status === "completed" ||
+      download.status === "cancelled" ||
+      download.status === "interrupted",
   );
 
   const handleStatus: (
     status: string,
   ) =>
-    'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link' = (
+    "default" | "destructive" | "outline" | "secondary" | "ghost" | "link" = (
     status: string,
   ) => {
     switch (status) {
-      case 'progressing':
-        return 'outline';
-      case 'paused':
-        return 'secondary';
-      case 'completed':
-        return 'default';
-      case 'cancelled':
-        return 'destructive';
-      case 'interrupted':
-        return 'destructive';
+      case "progressing":
+        return "outline";
+      case "paused":
+        return "secondary";
+      case "completed":
+        return "default";
+      case "cancelled":
+        return "destructive";
+      case "interrupted":
+        return "destructive";
       default:
-        return 'default';
+        return "default";
     }
   };
 
@@ -63,7 +63,7 @@ export function DownloadsPopup({ state, error, run }: RouteProps) {
             size="icon-xs"
             title="Limpar histórico"
             aria-label="Limpar histórico"
-            onClick={() => void run({ type: 'clear-downloads' })}
+            onClick={() => void run({ type: "clear-downloads" })}
           >
             <Trash2 />
           </Button>
@@ -86,13 +86,13 @@ export function DownloadsPopup({ state, error, run }: RouteProps) {
                 )
               : null;
             const active =
-              download.status === 'progressing' || download.status === 'paused';
+              download.status === "progressing" || download.status === "paused";
             const status = {
-              progressing: percent === null ? 'Baixando' : `${percent}%`,
-              paused: 'Pausado',
-              completed: 'Concluído',
-              cancelled: 'Cancelado',
-              interrupted: 'Interrompido',
+              progressing: percent === null ? "Baixando" : `${percent}%`,
+              paused: "Pausado",
+              completed: "Concluído",
+              cancelled: "Cancelado",
+              interrupted: "Interrompido",
             }[download.status];
 
             return (
@@ -114,24 +114,24 @@ export function DownloadsPopup({ state, error, run }: RouteProps) {
                         <span>{bytes(download.receivedBytes)}</span>
                       </div>
                     </div>
-                    {download.status === 'progressing' && (
+                    {download.status === "progressing" && (
                       <Button
                         variant="ghost"
                         size="icon-xs"
                         title="Pausar"
                         aria-label={`Pausar ${download.name}`}
-                        onClick={() => action(download.id, 'pause')}
+                        onClick={() => action(download.id, "pause")}
                       >
                         <Pause />
                       </Button>
                     )}
-                    {download.status === 'paused' && (
+                    {download.status === "paused" && (
                       <Button
                         variant="ghost"
                         size="icon-xs"
                         title="Retomar"
                         aria-label={`Retomar ${download.name}`}
-                        onClick={() => action(download.id, 'resume')}
+                        onClick={() => action(download.id, "resume")}
                       >
                         <Play />
                       </Button>
@@ -142,19 +142,19 @@ export function DownloadsPopup({ state, error, run }: RouteProps) {
                         size="icon-xs"
                         title="Cancelar"
                         aria-label={`Cancelar ${download.name}`}
-                        onClick={() => action(download.id, 'cancel')}
+                        onClick={() => action(download.id, "cancel")}
                       >
                         <X />
                       </Button>
                     )}
-                    {download.status === 'completed' && (
+                    {download.status === "completed" && (
                       <Button
                         variant="ghost"
                         size="icon-lg"
                         title="Mostrar na pasta"
                         aria-label={`Mostrar ${download.name} na pasta`}
                         className="opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100"
-                        onClick={() => action(download.id, 'show')}
+                        onClick={() => action(download.id, "show")}
                       >
                         <FolderOpen />
                       </Button>
@@ -190,14 +190,14 @@ export function DownloadsPopup({ state, error, run }: RouteProps) {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => void run({ type: 'select-download-directory' })}
+              onClick={() => void run({ type: "select-download-directory" })}
             >
               Escolher pasta
             </Button>
             <Button
               size="sm"
               variant="ghost"
-              onClick={() => void run({ type: 'reset-download-directory' })}
+              onClick={() => void run({ type: "reset-download-directory" })}
             >
               Usar padrão
             </Button>

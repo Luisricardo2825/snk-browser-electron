@@ -1,8 +1,8 @@
-import { useEffect, useRef } from 'react';
-import { Globe2 } from 'lucide-react';
-import BrowserTitleBar from './titlebar';
-import { useOutletContext } from 'react-router';
-import type { RouteProps } from '@/@types/popup';
+import { useEffect, useRef } from "react";
+import { Globe2 } from "lucide-react";
+import BrowserTitleBar from "./titlebar";
+import { useOutletContext } from "react-router";
+import type { RouteProps } from "@/@types/popup";
 
 function BrowserApp() {
   const { state, error, run } = useOutletContext<RouteProps>();

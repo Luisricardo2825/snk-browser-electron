@@ -1,19 +1,19 @@
-const assert = require('node:assert/strict');
-const { spawn, spawnSync } = require('node:child_process');
-const { existsSync, mkdtempSync, readFileSync, rmSync } = require('node:fs');
-const { createServer } = require('node:http');
-const { tmpdir } = require('node:os');
-const { dirname, join, resolve: resolvePath, sep } = require('node:path');
-const { setTimeout: delay } = require('node:timers/promises');
+const assert = require("node:assert/strict");
+const { spawn, spawnSync } = require("node:child_process");
+const { existsSync, mkdtempSync, readFileSync, rmSync } = require("node:fs");
+const { createServer } = require("node:http");
+const { tmpdir } = require("node:os");
+const { dirname, join, resolve: resolvePath, sep } = require("node:path");
+const { setTimeout: delay } = require("node:timers/promises");
 
 const port = Number(process.env.SMOKE_PORT || 1213);
 const debugPort = Number(process.env.SMOKE_DEBUG_PORT || 9335);
-const windows = process.platform === 'win32';
+const windows = process.platform === "win32";
 const packagedApp = process.env.SMOKE_PACKAGED_APP;
-const dataDir = mkdtempSync(join(tmpdir(), 'snk-browser-smoke-'));
+const dataDir = mkdtempSync(join(tmpdir(), "snk-browser-smoke-"));
 const electronVite = resolvePath(
-  dirname(require.resolve('electron-vite')),
-  '../bin/electron-vite.js',
+  dirname(require.resolve("electron-vite")),
+  "../bin/electron-vite.js",
 );
 const child = spawn(
   packagedApp || process.execPath,
@@ -21,11 +21,11 @@ const child = spawn(
     ? [`--remote-debugging-port=${debugPort}`]
     : [
         electronVite,
-        'dev',
-        '--remoteDebuggingPort',
+        "dev",
+        "--remoteDebuggingPort",
         String(debugPort),
-        ...(process.env.CI && process.platform === 'linux'
-          ? ['--noSandbox']
+        ...(process.env.CI && process.platform === "linux"
+          ? ["--noSandbox"]
           : []),
       ],
   {
@@ -36,33 +36,33 @@ const child = spawn(
       SNK_BROWSER_DATA_DIR: dataDir,
       SNK_BROWSER_DOWNLOAD_DIR: dataDir,
     },
-    stdio: ['ignore', 'pipe', 'pipe'],
+    stdio: ["ignore", "pipe", "pipe"],
   },
 );
-let output = '';
+let output = "";
 let exited = false;
 let socket;
 const site = createServer((request, response) => {
-  response.setHeader('Content-Type', 'text/html; charset=utf-8');
-  if (request.url === '/download' || request.url === '/download-popup') {
+  response.setHeader("Content-Type", "text/html; charset=utf-8");
+  if (request.url === "/download" || request.url === "/download-popup") {
     response.setHeader(
-      'Content-Disposition',
-      `attachment; filename="smoke-${request.url === '/download' ? 'download' : 'popup-download'}.txt"`,
+      "Content-Disposition",
+      `attachment; filename="smoke-${request.url === "/download" ? "download" : "popup-download"}.txt"`,
     );
-    response.end('download de teste');
+    response.end("download de teste");
     return;
   }
-  if (request.url === '/popup') {
-    response.end('<!doctype html><title>Popup de teste</title>');
+  if (request.url === "/popup") {
+    response.end("<!doctype html><title>Popup de teste</title>");
     return;
   }
-  if (request.url === '/flash') {
+  if (request.url === "/flash") {
     response.end(
       '<!doctype html><title>Flash de teste</title><script>window.ruffleAtStart=Boolean(window.__snkRuffleLoaded);window.flashAtStart=Boolean(navigator.plugins.namedItem("Shockwave Flash"))</script><object type="application/x-shockwave-flash" data="/missing.swf"></object><iframe src="/flash-frame"></iframe>',
     );
     return;
   }
-  if (request.url === '/flash-frame') {
+  if (request.url === "/flash-frame") {
     response.end(
       '<!doctype html><script>window.ruffleAtStart=Boolean(window.__snkRuffleLoaded);window.flashAtStart=Boolean(navigator.plugins.namedItem("Shockwave Flash"))</script><object type="application/x-shockwave-flash" data="/missing.swf"></object>',
     );
@@ -72,16 +72,16 @@ const site = createServer((request, response) => {
     "<!doctype html><title>Site de teste</title><h1>Site de teste</h1><button onclick=\"window.open('/popup','_blank','width=480,height=300')\">Abrir popup</button>",
   );
 });
-child.stdout.on('data', (data) => {
+child.stdout.on("data", (data) => {
   output += data;
 });
-child.stderr.on('data', (data) => {
+child.stderr.on("data", (data) => {
   output += data;
 });
-child.on('exit', () => {
+child.on("exit", () => {
   exited = true;
 });
-child.on('error', (error) => {
+child.on("error", (error) => {
   output += error.stack;
   exited = true;
 });
@@ -100,16 +100,16 @@ async function waitFor(check, description, timeoutMs = 120_000) {
 async function evaluateTarget(target, expression) {
   const connection = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((resolve, reject) => {
-    connection.addEventListener('open', resolve, { once: true });
-    connection.addEventListener('error', reject, { once: true });
+    connection.addEventListener("open", resolve, { once: true });
+    connection.addEventListener("error", reject, { once: true });
   });
   try {
     return await new Promise((resolve, reject) => {
       const timeout = setTimeout(
-        () => reject(new Error('Timed out: popup renderer')),
+        () => reject(new Error("Timed out: popup renderer")),
         10_000,
       );
-      connection.addEventListener('message', ({ data }) => {
+      connection.addEventListener("message", ({ data }) => {
         const message = JSON.parse(data);
         if (message.id !== 1) return;
         clearTimeout(timeout);
@@ -120,7 +120,7 @@ async function evaluateTarget(target, expression) {
       connection.send(
         JSON.stringify({
           id: 1,
-          method: 'Runtime.evaluate',
+          method: "Runtime.evaluate",
           params: { expression, awaitPromise: true, returnByValue: true },
         }),
       );
@@ -137,27 +137,27 @@ async function main() {
       const targets = await response.json();
       return targets.find(
         (entry) =>
-          entry.type === 'page' &&
+          entry.type === "page" &&
           (packagedApp
-            ? entry.url.startsWith('file:') && entry.url.includes('index.html')
+            ? entry.url.startsWith("file:") && entry.url.includes("index.html")
             : entry.url.startsWith(`http://localhost:${port}`)),
       );
     } catch {
       return null;
     }
-  }, 'Electron renderer');
+  }, "Electron renderer");
 
   socket = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((resolve, reject) => {
-    socket.addEventListener('open', resolve, { once: true });
-    socket.addEventListener('error', reject, { once: true });
+    socket.addEventListener("open", resolve, { once: true });
+    socket.addEventListener("error", reject, { once: true });
   });
   let id = 0;
   const requests = new Map();
   const exceptions = [];
-  socket.addEventListener('message', ({ data }) => {
+  socket.addEventListener("message", ({ data }) => {
     const message = JSON.parse(data);
-    if (message.method === 'Runtime.exceptionThrown')
+    if (message.method === "Runtime.exceptionThrown")
       exceptions.push(message.params);
     if (requests.has(message.id)) {
       requests.get(message.id)(message);
@@ -182,20 +182,20 @@ async function main() {
     });
   }
   async function evaluate(expression) {
-    const result = await send('Runtime.evaluate', {
+    const result = await send("Runtime.evaluate", {
       expression,
       awaitPromise: true,
       returnByValue: true,
     });
     return result.result.value;
   }
-  await send('Runtime.enable');
+  await send("Runtime.enable");
   await waitFor(
     () =>
       evaluate(
         'document.querySelector("h1")?.textContent === "Sankhya Browser"',
       ),
-    'browser interface',
+    "browser interface",
   );
   assert.equal(
     await evaluate('Boolean(document.querySelector("vite-error-overlay"))'),
@@ -204,11 +204,11 @@ async function main() {
   await waitFor(
     () =>
       evaluate(
-        'window.electron.browser.getState().then(({ state }) => state.tabs.length === 1)',
+        "window.electron.browser.getState().then(({ state }) => state.tabs.length === 1)",
       ),
-    'initial tab',
+    "initial tab",
   );
-  await new Promise((resolve) => site.listen(0, '127.0.0.1', resolve));
+  await new Promise((resolve) => site.listen(0, "127.0.0.1", resolve));
   const siteUrl = `http://127.0.0.1:${site.address().port}/`;
   await evaluate(
     `window.electron.browser.command({type:'navigate',url:${JSON.stringify(siteUrl)}})`,
@@ -218,16 +218,16 @@ async function main() {
       evaluate(
         'window.electron.browser.getState().then(({ state }) => state.tabs[0].title === "Site de teste" && !state.tabs[0].loading)',
       ),
-    'site navigation',
+    "site navigation",
   );
   const siteTarget = await waitFor(async () => {
     const response = await fetch(`http://127.0.0.1:${debugPort}/json/list`);
     return (await response.json()).find((entry) => entry.url === siteUrl);
-  }, 'site WebContentsView');
+  }, "site WebContentsView");
   const siteSocket = new WebSocket(siteTarget.webSocketDebuggerUrl);
   await new Promise((resolve, reject) => {
-    siteSocket.addEventListener('open', resolve, { once: true });
-    siteSocket.addEventListener('error', reject, { once: true });
+    siteSocket.addEventListener("open", resolve, { once: true });
+    siteSocket.addEventListener("error", reject, { once: true });
   });
   let siteRequestId = 0;
   const siteCommand = (method, params) =>
@@ -241,14 +241,14 @@ async function main() {
         const message = JSON.parse(data);
         if (message.id !== requestId) return;
         clearTimeout(timeout);
-        siteSocket.removeEventListener('message', receive);
+        siteSocket.removeEventListener("message", receive);
         if (message.error) reject(new Error(JSON.stringify(message.error)));
         else resolve(message.result);
       };
-      siteSocket.addEventListener('message', receive);
+      siteSocket.addEventListener("message", receive);
       siteSocket.send(JSON.stringify({ id: requestId, method, params }));
     });
-  await siteCommand('Runtime.evaluate', {
+  await siteCommand("Runtime.evaluate", {
     expression: 'document.querySelector("button").click()',
     userGesture: true,
   });
@@ -259,11 +259,11 @@ async function main() {
         (entry) => entry.url === `${siteUrl}popup`,
       );
     },
-    'sized site popup',
+    "sized site popup",
     20_000,
   );
-  assert.equal(await evaluateTarget(sitePopup, 'Boolean(window.opener)'), true);
-  await siteCommand('Runtime.evaluate', {
+  assert.equal(await evaluateTarget(sitePopup, "Boolean(window.opener)"), true);
+  await siteCommand("Runtime.evaluate", {
     expression:
       "window.open('/mge/sessionUpload.mge?sessionkey=test', '_blank')",
     userGesture: true,
@@ -276,14 +276,14 @@ async function main() {
           entry.url === `${siteUrl}mge/sessionUpload.mge?sessionkey=test`,
       );
     },
-    'upload popup without window features',
+    "upload popup without window features",
     20_000,
   );
   assert.equal(
-    await evaluateTarget(uploadPopup, 'Boolean(window.opener)'),
+    await evaluateTarget(uploadPopup, "Boolean(window.opener)"),
     true,
   );
-  await siteCommand('Runtime.evaluate', {
+  await siteCommand("Runtime.evaluate", {
     expression: "location.href = '/download'",
     userGesture: true,
   });
@@ -292,12 +292,12 @@ async function main() {
       evaluate(
         'window.electron.browser.getState().then(({ state }) => state.downloads.find((item) => item.name === "smoke-download.txt" && item.status === "completed"))',
       ),
-    'completed site download',
+    "completed site download",
     20_000,
   );
-  assert.equal(downloaded.path, join(dataDir, 'smoke-download.txt'));
+  assert.equal(downloaded.path, join(dataDir, "smoke-download.txt"));
   assert.equal(existsSync(downloaded.path), true);
-  await siteCommand('Runtime.evaluate', {
+  await siteCommand("Runtime.evaluate", {
     expression: "location.href = '/download'",
     userGesture: true,
   });
@@ -306,20 +306,20 @@ async function main() {
       evaluate(
         'window.electron.browser.getState().then(({ state }) => state.downloads.find((item) => item.name === "smoke-download (1).txt" && item.status === "completed"))',
       ),
-    'download name after destination collision',
+    "download name after destination collision",
     20_000,
   );
-  assert.equal(renamedDownload.path, join(dataDir, 'smoke-download (1).txt'));
+  assert.equal(renamedDownload.path, join(dataDir, "smoke-download (1).txt"));
   await evaluateTarget(uploadPopup, "location.href = '/download-popup'");
   const popupDownload = await waitFor(
     () =>
       evaluate(
         'window.electron.browser.getState().then(({ state }) => state.downloads.find((item) => item.name === "smoke-popup-download.txt" && item.status === "completed"))',
       ),
-    'completed popup download',
+    "completed popup download",
     20_000,
   );
-  assert.equal(popupDownload.path, join(dataDir, 'smoke-popup-download.txt'));
+  assert.equal(popupDownload.path, join(dataDir, "smoke-popup-download.txt"));
   assert.equal(existsSync(popupDownload.path), true);
   await evaluate(
     'window.electron.browser.command({type:"toggle-popup",popup:"downloads",anchor:{x:window.innerWidth-28,y:window.innerHeight-28,width:20,height:20}})',
@@ -327,24 +327,24 @@ async function main() {
   const downloadsTarget = await waitFor(async () => {
     const response = await fetch(`http://127.0.0.1:${debugPort}/json/list`);
     return (await response.json()).find((entry) =>
-      entry.url.includes('#/popup/downloads'),
+      entry.url.includes("#/popup/downloads"),
     );
-  }, 'downloads popup');
+  }, "downloads popup");
   await waitFor(
     () =>
       evaluateTarget(
         downloadsTarget,
         'document.body?.innerText.includes("smoke-download.txt")',
       ),
-    'download in popup',
+    "download in popup",
     10_000,
   );
   const mainBounds = await evaluate(
-    '({x:window.screenX,y:window.screenY,width:window.outerWidth,height:window.outerHeight})',
+    "({x:window.screenX,y:window.screenY,width:window.outerWidth,height:window.outerHeight})",
   );
   const popupBounds = await evaluateTarget(
     downloadsTarget,
-    '({x:window.screenX,y:window.screenY,width:window.outerWidth,height:window.outerHeight})',
+    "({x:window.screenX,y:window.screenY,width:window.outerWidth,height:window.outerHeight})",
   );
   assert.ok(popupBounds.x >= mainBounds.x + 12);
   assert.ok(popupBounds.y >= mainBounds.y + 12);
@@ -365,16 +365,16 @@ async function main() {
   );
   await waitFor(
     async () => {
-      const result = await siteCommand('Runtime.evaluate', {
-        expression: 'Boolean(window.__snkRuffleLoaded)',
+      const result = await siteCommand("Runtime.evaluate", {
+        expression: "Boolean(window.__snkRuffleLoaded)",
         returnByValue: true,
       });
       return result.result.value;
     },
-    'Flash-only Ruffle injection',
+    "Flash-only Ruffle injection",
     15_000,
   ).catch(async (error) => {
-    const diagnostic = await siteCommand('Runtime.evaluate', {
+    const diagnostic = await siteCommand("Runtime.evaluate", {
       expression:
         '({url:location.href, flash:Boolean(document.querySelector("object")), loaded:window.__snkRuffleLoaded})',
       returnByValue: true,
@@ -383,7 +383,7 @@ async function main() {
       `${error.message}: ${JSON.stringify(diagnostic.result.value)}`,
     );
   });
-  const earlyFlash = await siteCommand('Runtime.evaluate', {
+  const earlyFlash = await siteCommand("Runtime.evaluate", {
     expression:
       '({atStart:window.flashAtStart,ruffleAtStart:window.ruffleAtStart,plugin:Boolean(navigator.plugins.namedItem("Shockwave Flash")),ruffle:Boolean(window.RufflePlayer?.newest?.())})',
     returnByValue: true,
@@ -394,7 +394,7 @@ async function main() {
     plugin: true,
     ruffle: true,
   });
-  const frameFlash = await siteCommand('Runtime.evaluate', {
+  const frameFlash = await siteCommand("Runtime.evaluate", {
     expression:
       '({atStart:document.querySelector("iframe").contentWindow.flashAtStart,ruffleAtStart:document.querySelector("iframe").contentWindow.ruffleAtStart,plugin:Boolean(document.querySelector("iframe").contentWindow.navigator.plugins.namedItem("Shockwave Flash")),loaded:Boolean(document.querySelector("iframe").contentWindow.__snkRuffleLoaded)})',
     returnByValue: true,
@@ -405,7 +405,7 @@ async function main() {
     plugin: true,
     loaded: true,
   });
-  const resource = await siteCommand('Runtime.evaluate', {
+  const resource = await siteCommand("Runtime.evaluate", {
     expression:
       'fetch("snk-ruffle://assets/ruffle.js").then((response) => response.ok)',
     awaitPromise: true,
@@ -421,16 +421,16 @@ async function main() {
       evaluate(
         'window.electron.browser.getState().then(({ state }) => state.savedUrls[0]?.name === "Base" && state.tabs[0].savedTitle === "Teste / Base")',
       ),
-    'saved environment',
+    "saved environment",
   );
   await evaluate(
     'window.electron.browser.command({type:"set-theme",theme:"dark"})',
   );
   assert.equal(
     await evaluate(
-      'window.electron.browser.getState().then(({ state }) => state.theme)',
+      "window.electron.browser.getState().then(({ state }) => state.theme)",
     ),
-    'dark',
+    "dark",
   );
   await evaluate(
     'window.electron.browser.command({type:"toggle-popup",popup:"theme",anchor:{x:10,y:10,width:20,height:20}})',
@@ -440,29 +440,29 @@ async function main() {
       evaluate(
         'window.electron.browser.getState().then(({ state }) => state.popup === "theme")',
       ),
-    'native theme popup',
+    "native theme popup",
   );
   const themeTarget = await waitFor(async () => {
     const response = await fetch(`http://127.0.0.1:${debugPort}/json/list`);
     const targets = await response.json();
-    return targets.find((entry) => entry.url.includes('#/popup/theme'));
-  }, 'theme popup renderer');
+    return targets.find((entry) => entry.url.includes("#/popup/theme"));
+  }, "theme popup renderer");
   await waitFor(
     () =>
       evaluateTarget(
         themeTarget,
         'Boolean(document.body?.innerText.includes("Claro") && document.body?.innerText.includes("Escuro"))',
       ),
-    'shadcn theme picker',
+    "shadcn theme picker",
     10_000,
   );
   await evaluate('window.electron.browser.command({type:"select-tab",id:"1"})');
   await waitFor(
     () =>
       evaluate(
-        'window.electron.browser.getState().then(({ state }) => state.popup === null)',
+        "window.electron.browser.getState().then(({ state }) => state.popup === null)",
       ),
-    'popup close on blur',
+    "popup close on blur",
     5_000,
   );
   await evaluate(
@@ -474,9 +474,9 @@ async function main() {
   await waitFor(
     () =>
       evaluate(
-        'window.electron.browser.getState().then(({ state }) => state.popup === null)',
+        "window.electron.browser.getState().then(({ state }) => state.popup === null)",
       ),
-    'popup toggle close',
+    "popup toggle close",
   );
   await evaluate(
     'window.electron.browser.command({type:"toggle-popup",popup:"sites",anchor:{x:10,y:10,width:20,height:20}})',
@@ -484,16 +484,16 @@ async function main() {
   const sitesTarget = await waitFor(async () => {
     const response = await fetch(`http://127.0.0.1:${debugPort}/json/list`);
     return (await response.json()).find((entry) =>
-      entry.url.includes('#/popup/sites'),
+      entry.url.includes("#/popup/sites"),
     );
-  }, 'saved sites popup');
+  }, "saved sites popup");
   await waitFor(
     () =>
       evaluateTarget(
         sitesTarget,
         'Boolean(document.body?.innerText.includes("Teste") && document.body?.innerText.includes("Base") && document.body?.innerText.includes("Importar bases"))',
       ),
-    'shadcn saved sites picker',
+    "shadcn saved sites picker",
     10_000,
   );
   await evaluate(
@@ -505,16 +505,16 @@ async function main() {
   const saveTarget = await waitFor(async () => {
     const response = await fetch(`http://127.0.0.1:${debugPort}/json/list`);
     return (await response.json()).find((entry) =>
-      entry.url.includes('#/popup/save'),
+      entry.url.includes("#/popup/save"),
     );
-  }, 'save popup');
+  }, "save popup");
   await waitFor(
     () =>
       evaluateTarget(
         saveTarget,
         'Boolean(document.body?.innerText.includes("Salvar ambiente"))',
       ),
-    'save popup route',
+    "save popup route",
   );
   await evaluate(
     'window.electron.browser.command({type:"toggle-popup",popup:"save"})',
@@ -525,7 +525,7 @@ async function main() {
       evaluate(
         'window.electron.browser.getState().then(({ state }) => state.tabs.length === 2 && state.activeTabId === "2")',
       ),
-    'new tab',
+    "new tab",
   );
   await evaluate('window.electron.browser.command({type:"select-tab",id:"1"})');
   await waitFor(
@@ -533,7 +533,7 @@ async function main() {
       evaluate(
         'window.electron.browser.getState().then(({ state }) => state.activeTabId === "1")',
       ),
-    'tab switch',
+    "tab switch",
   );
   await evaluate('window.electron.browser.command({type:"close-tab",id:"1"})');
   await waitFor(
@@ -541,16 +541,16 @@ async function main() {
       evaluate(
         'window.electron.browser.getState().then(({ state }) => state.tabs.length === 1 && state.activeTabId === "2")',
       ),
-    'tab close',
+    "tab close",
   );
   await evaluate(
     `window.electron.browser.command({type:'new-tab',url:${JSON.stringify(siteUrl)}})`,
   );
   await evaluate('window.electron.browser.command({type:"select-tab",id:"2"})');
   const settings = JSON.parse(
-    readFileSync(join(dataDir, 'browser-settings.json'), 'utf8'),
+    readFileSync(join(dataDir, "browser-settings.json"), "utf8"),
   );
-  assert.deepEqual(settings.session, { urls: ['', siteUrl], activeIndex: 0 });
+  assert.deepEqual(settings.session, { urls: ["", siteUrl], activeIndex: 0 });
   assert.equal(
     await evaluate(
       `window.electron.browser.getState().then(({state}) => state.downloadDirectoryManaged && state.downloadDirectory === ${JSON.stringify(dataDir)})`,
@@ -561,7 +561,7 @@ async function main() {
   socket.send(
     JSON.stringify({
       id: ++id,
-      method: 'Runtime.evaluate',
+      method: "Runtime.evaluate",
       params: {
         expression: 'window.electron.browser.command({type:"close-window"})',
       },
@@ -569,10 +569,10 @@ async function main() {
   );
   await waitFor(() => {
     const saved = JSON.parse(
-      readFileSync(join(dataDir, 'browser-settings.json'), 'utf8'),
+      readFileSync(join(dataDir, "browser-settings.json"), "utf8"),
     );
     return saved.window?.width >= 640 && saved.window?.height >= 420;
-  }, 'saved window');
+  }, "saved window");
   for (let attempt = 0; attempt < 40 && !exited; attempt += 1) await delay(250);
   assert.equal(exited, true, `Electron did not exit: ${output}`);
   exited = false;
@@ -580,7 +580,7 @@ async function main() {
     packagedApp || process.execPath,
     packagedApp
       ? [`--remote-debugging-port=${debugPort}`]
-      : [electronVite, 'dev', '--remoteDebuggingPort', String(debugPort)],
+      : [electronVite, "dev", "--remoteDebuggingPort", String(debugPort)],
     {
       detached: !windows,
       env: {
@@ -589,16 +589,16 @@ async function main() {
         SNK_BROWSER_DATA_DIR: dataDir,
         SNK_BROWSER_DOWNLOAD_DIR: dataDir,
       },
-      stdio: ['ignore', 'pipe', 'pipe'],
+      stdio: ["ignore", "pipe", "pipe"],
     },
   );
-  reopened.stdout.on('data', (data) => {
+  reopened.stdout.on("data", (data) => {
     output += data;
   });
-  reopened.stderr.on('data', (data) => {
+  reopened.stderr.on("data", (data) => {
     output += data;
   });
-  reopened.on('exit', () => {
+  reopened.on("exit", () => {
     exited = true;
   });
   try {
@@ -608,16 +608,16 @@ async function main() {
         const targets = await response.json();
         return targets.find(
           (entry) =>
-            entry.type === 'page' &&
+            entry.type === "page" &&
             (packagedApp
-              ? entry.url.startsWith('file:') &&
-                entry.url.includes('index.html')
+              ? entry.url.startsWith("file:") &&
+                entry.url.includes("index.html")
               : entry.url.startsWith(`http://localhost:${port}`)),
         );
       } catch {
         return null;
       }
-    }, 'reopened renderer');
+    }, "reopened renderer");
     await waitFor(async () => {
       try {
         return await evaluateTarget(
@@ -627,20 +627,20 @@ async function main() {
       } catch {
         return false;
       }
-    }, 'restored tabs');
+    }, "restored tabs");
   } finally {
     if (windows)
-      spawnSync('taskkill', ['/pid', String(reopened.pid), '/T', '/F']);
+      spawnSync("taskkill", ["/pid", String(reopened.pid), "/T", "/F"]);
     else if (reopened.pid) {
       try {
-        process.kill(-reopened.pid, 'SIGTERM');
+        process.kill(-reopened.pid, "SIGTERM");
       } catch (error) {
-        if (error.code !== 'ESRCH') console.error(error);
+        if (error.code !== "ESRCH") console.error(error);
       }
     }
   }
   console.log(
-    'Electron smoke passed: tabs, popups, downloads, saved bases, theme, Ruffle, and no renderer exceptions.',
+    "Electron smoke passed: tabs, popups, downloads, saved bases, theme, Ruffle, and no renderer exceptions.",
   );
 }
 
@@ -649,15 +649,15 @@ main()
     socket?.close();
     site.close();
     if (windows) {
-      spawnSync('taskkill', ['/pid', String(child.pid), '/T', '/F']);
+      spawnSync("taskkill", ["/pid", String(child.pid), "/T", "/F"]);
     } else if (child.pid) {
-      for (const signal of ['SIGTERM', 'SIGKILL']) {
+      for (const signal of ["SIGTERM", "SIGKILL"]) {
         try {
           process.kill(-child.pid, signal);
         } catch (error) {
-          if (error.code !== 'ESRCH') throw error;
+          if (error.code !== "ESRCH") throw error;
         }
-        if (signal === 'SIGTERM') await delay(1000);
+        if (signal === "SIGTERM") await delay(1000);
       }
     }
     const resolvedDataDir = resolvePath(dataDir);

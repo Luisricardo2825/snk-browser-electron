@@ -1,13 +1,13 @@
-const { build } = require('../../package.json');
+const { build } = require("../../package.json");
 
 exports.default = async function notarizeMacos(context) {
   const { electronPlatformName, appOutDir } = context;
-  if (electronPlatformName !== 'darwin') {
+  if (electronPlatformName !== "darwin") {
     return;
   }
 
-  if (process.env.CI !== 'true') {
-    console.warn('Skipping notarizing step. Packaging is not running in CI');
+  if (process.env.CI !== "true") {
+    console.warn("Skipping notarizing step. Packaging is not running in CI");
     return;
   }
 
@@ -19,16 +19,16 @@ exports.default = async function notarizeMacos(context) {
     process.env.APPLE_TEAM_ID
   )) {
     console.warn(
-      'Skipping notarizing step. Signing and Apple notarization credentials must be set',
+      "Skipping notarizing step. Signing and Apple notarization credentials must be set",
     );
     return;
   }
 
   const appName = context.packager.appInfo.productFilename;
 
-  const { notarize } = await import('@electron/notarize');
+  const { notarize } = await import("@electron/notarize");
   await notarize({
-    tool: 'notarytool',
+    tool: "notarytool",
     appBundleId: build.appId,
     appPath: `${appOutDir}/${appName}.app`,
     appleId: process.env.APPLE_ID,

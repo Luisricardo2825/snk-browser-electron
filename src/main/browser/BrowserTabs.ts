@@ -1,15 +1,15 @@
-import { BrowserWindow, Menu, WebContentsView } from 'electron';
-import type { BrowserState, BrowserTab, SavedUrl } from '@shared/browser';
-import { CHROME_HEIGHT } from '@shared/browser';
-import BrowserDownloads from './BrowserDownloads';
-import BrowserSettings from './BrowserSettings';
-import type { TabSession } from './BrowserSettings';
-import BrowserViewFactory from './BrowserViewFactory';
+import { BrowserWindow, Menu, WebContentsView } from "electron";
+import type { BrowserState, BrowserTab, SavedUrl } from "@shared/browser";
+import { CHROME_HEIGHT } from "@shared/browser";
+import BrowserDownloads from "./BrowserDownloads";
+import BrowserSettings from "./BrowserSettings";
+import type { TabSession } from "./BrowserSettings";
+import BrowserViewFactory from "./BrowserViewFactory";
 
 export default class BrowserTabs {
   private readonly tabs: BrowserTab[] = [];
   private readonly views = new Map<string, WebContentsView>();
-  private activeTabId = '';
+  private activeTabId = "";
   private activeView: WebContentsView | null = null;
   private nextTabId = 0;
   private readonly viewFactory: BrowserViewFactory;
@@ -33,7 +33,7 @@ export default class BrowserTabs {
 
   snapshot(): Pick<
     BrowserState,
-    'tabs' | 'activeTabId' | 'canGoBack' | 'canGoForward'
+    "tabs" | "activeTabId" | "canGoBack" | "canGoForward"
   > {
     const active = this.views.get(this.activeTabId);
     return {
@@ -72,11 +72,11 @@ export default class BrowserTabs {
     if (active) active.savedTitle = title;
   }
 
-  navigateHistory(direction: 'back' | 'forward'): void {
+  navigateHistory(direction: "back" | "forward"): void {
     const history = this.views.get(this.activeTabId)?.webContents
       .navigationHistory;
-    if (direction === 'back' && history?.canGoBack()) history.goBack();
-    if (direction === 'forward' && history?.canGoForward()) history.goForward();
+    if (direction === "back" && history?.canGoBack()) history.goBack();
+    if (direction === "forward" && history?.canGoForward()) history.goForward();
   }
 
   reload(): void {
@@ -124,11 +124,11 @@ export default class BrowserTabs {
   newTab(url?: string): void {
     const tab: BrowserTab = {
       id: String(++this.nextTabId),
-      title: 'Nova aba',
-      url: '',
+      title: "Nova aba",
+      url: "",
       loading: false,
-      error: '',
-      savedTitle: '',
+      error: "",
+      savedTitle: "",
     };
     this.tabs.push(tab);
     this.activeTabId = tab.id;
@@ -150,11 +150,11 @@ export default class BrowserTabs {
         view.webContents.close();
       }
       Object.assign(tab, {
-        url: '',
-        title: 'Nova aba',
-        savedTitle: '',
+        url: "",
+        title: "Nova aba",
+        savedTitle: "",
         loading: false,
-        error: '',
+        error: "",
       });
       this.onChange();
       return;
@@ -173,10 +173,10 @@ export default class BrowserTabs {
           tab.savedTitle,
         );
     tab.loading = true;
-    tab.error = '';
+    tab.error = "";
     this.showActiveTab();
     void view.webContents.loadURL(url).catch((error: unknown) => {
-      if (!this.tab(tab.id) || String(error).includes('ERR_ABORTED')) return;
+      if (!this.tab(tab.id) || String(error).includes("ERR_ABORTED")) return;
       tab.loading = false;
       tab.error = String(error);
       this.onChange();
@@ -237,18 +237,18 @@ export default class BrowserTabs {
     if (index < 0) return;
     Menu.buildFromTemplate([
       {
-        label: 'Abrir DevTools',
+        label: "Abrir DevTools",
         enabled: this.views.has(id),
         click: () => {
           this.activeTabId = id;
           this.showActiveTab();
-          this.views.get(id)?.webContents.openDevTools({ mode: 'detach' });
+          this.views.get(id)?.webContents.openDevTools({ mode: "detach" });
         },
       },
-      { type: 'separator' },
-      { label: 'Fechar', click: () => this.closeTab(id) },
+      { type: "separator" },
+      { label: "Fechar", click: () => this.closeTab(id) },
       {
-        label: 'Fechar outras',
+        label: "Fechar outras",
         enabled: this.tabs.length > 1,
         click: () =>
           this.closeTabs(
@@ -257,7 +257,7 @@ export default class BrowserTabs {
           ),
       },
       {
-        label: 'Fechar guias à esquerda',
+        label: "Fechar guias à esquerda",
         enabled: index > 0,
         click: () =>
           this.closeTabs(
@@ -266,7 +266,7 @@ export default class BrowserTabs {
           ),
       },
       {
-        label: 'Fechar guias à direita',
+        label: "Fechar guias à direita",
         enabled: index < this.tabs.length - 1,
         click: () =>
           this.closeTabs(

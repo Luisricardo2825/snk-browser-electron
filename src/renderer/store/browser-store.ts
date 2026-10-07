@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import type { BrowserSnapshot } from '@shared/browser';
+import { create } from "zustand";
+import type { BrowserSnapshot } from "@shared/browser";
 
 type BrowserStore = {
   snapshot: BrowserSnapshot | null;

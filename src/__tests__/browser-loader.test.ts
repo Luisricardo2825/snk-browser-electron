@@ -1,22 +1,22 @@
-import type { BrowserSnapshot, BrowserState } from '../shared/browser';
-import { browserLoader } from '../renderer/routes/browser-loader';
-import { useBrowserStore } from '../renderer/store/browser-store';
+import type { BrowserSnapshot, BrowserState } from "../shared/browser";
+import { browserLoader } from "../renderer/routes/browser-loader";
+import { useBrowserStore } from "../renderer/store/browser-store";
 
 const state: BrowserState = {
   downloads: [],
-  downloadDirectory: '',
+  downloadDirectory: "",
   downloadDirectoryManaged: false,
   tabs: [],
-  activeTabId: '',
+  activeTabId: "",
   canGoBack: false,
   canGoForward: false,
   maximized: false,
   savedUrls: [],
-  theme: 'light',
+  theme: "light",
   popup: null,
 };
 
-test('evento novo prevalece sobre resposta antiga de getState', async () => {
+test("evento novo prevalece sobre resposta antiga de getState", async () => {
   let emit!: (snapshot: BrowserSnapshot) => void;
   let resolveState!: (snapshot: BrowserSnapshot) => void;
   window.electron = {
@@ -36,10 +36,10 @@ test('evento novo prevalece sobre resposta antiga de getState', async () => {
   };
 
   const pending = browserLoader();
-  const newer = { revision: 2, state: { ...state, theme: 'dark' as const } };
+  const newer = { revision: 2, state: { ...state, theme: "dark" as const } };
   emit(newer);
   resolveState({ revision: 1, state });
 
-  expect(await pending).toEqual({ state: newer.state, error: '' });
+  expect(await pending).toEqual({ state: newer.state, error: "" });
   expect(useBrowserStore.getState().snapshot).toBe(newer);
 });

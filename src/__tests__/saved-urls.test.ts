@@ -1,21 +1,21 @@
-import { importedSavedUrls } from '../shared/saved-urls';
+import { importedSavedUrls } from "../shared/saved-urls";
 
-test('importa formatos atual e legado sem perder pasta e apelido', () => {
+test("importa formatos atual e legado sem perder pasta e apelido", () => {
   expect(
     importedSavedUrls([
-      { folder: 'Cliente', name: 'Produção', url: 'https://example.com/mge/' },
+      { folder: "Cliente", name: "Produção", url: "https://example.com/mge/" },
     ]),
   ).toEqual([
-    { folder: 'Cliente', name: 'Produção', url: 'https://example.com/mge/' },
+    { folder: "Cliente", name: "Produção", url: "https://example.com/mge/" },
   ]);
-  expect(importedSavedUrls(['http://localhost:8080/mge/'])).toEqual([
+  expect(importedSavedUrls(["http://localhost:8080/mge/"])).toEqual([
     {
-      folder: 'Sem pasta',
-      name: 'http://localhost:8080/mge/',
-      url: 'http://localhost:8080/mge/',
+      folder: "Sem pasta",
+      name: "http://localhost:8080/mge/",
+      url: "http://localhost:8080/mge/",
     },
   ]);
   expect(() =>
-    importedSavedUrls([{ folder: 'Cliente', name: 'Base', url: 'file:///x' }]),
-  ).toThrow('Base com URL inválida.');
+    importedSavedUrls([{ folder: "Cliente", name: "Base", url: "file:///x" }]),
+  ).toThrow("Base com URL inválida.");
 });

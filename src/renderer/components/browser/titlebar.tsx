@@ -4,7 +4,7 @@ import {
   useState,
   type MouseEvent,
   type SubmitEvent,
-} from 'react';
+} from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -19,19 +19,19 @@ import {
   RotateCw,
   Sun,
   X,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { ButtonGroup } from '@/components/ui/button-group';
-import { Input } from '@/components/ui/input';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
+import { Input } from "@/components/ui/input";
 
-import { BrowserTabs } from '@/components/custom/tabs';
+import { BrowserTabs } from "@/components/custom/tabs";
 import type {
   BrowserCommand,
   BrowserState,
   PopupAnchor,
   PopupKind,
-} from '@shared/browser';
-import SiteIcon from './SiteIcon';
+} from "@shared/browser";
+import SiteIcon from "./SiteIcon";
 
 function anchorOf(event: MouseEvent<HTMLElement>): PopupAnchor {
   const { x, y, width, height } = event.currentTarget.getBoundingClientRect();
@@ -50,7 +50,7 @@ function BrowserTitleBar({
   const tab = state?.tabs.find((item) => item.id === state.activeTabId);
   const activeDownloads =
     state?.downloads.filter(
-      (item) => item.status === 'progressing' || item.status === 'paused',
+      (item) => item.status === "progressing" || item.status === "paused",
     ) ?? [];
   const totalBytes = activeDownloads.reduce(
     (total, item) => total + item.totalBytes,
@@ -74,7 +74,7 @@ function BrowserTitleBar({
     null,
   );
   const address =
-    draft && draft.id === state?.activeTabId ? draft.value : (tab?.url ?? '');
+    draft && draft.id === state?.activeTabId ? draft.value : (tab?.url ?? "");
   const addressRef = useRef<HTMLInputElement>(null);
   const tabId = tab?.id;
   const tabUrl = tab?.url;
@@ -85,12 +85,12 @@ function BrowserTitleBar({
 
   const navigate = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
-    void run({ type: 'navigate', url: address });
+    void run({ type: "navigate", url: address });
     setDraft(null);
   };
 
   const toggle = (popup: PopupKind, event: MouseEvent<HTMLElement>) => {
-    void run({ type: 'toggle-popup', popup, anchor: anchorOf(event) });
+    void run({ type: "toggle-popup", popup, anchor: anchorOf(event) });
   };
 
   return (
@@ -102,17 +102,17 @@ function BrowserTitleBar({
           className="h-8 w-10 shrink-0 rounded-none"
           aria-label="Selecionar base"
           title="Selecionar base"
-          onClick={(event) => toggle('sites', event)}
+          onClick={(event) => toggle("sites", event)}
         >
           <List />
         </Button>
         <BrowserTabs
           tabs={state?.tabs ?? []}
-          activeTabId={state?.activeTabId ?? ''}
-          onAdd={() => void run({ type: 'new-tab' })}
-          onClose={(id) => void run({ type: 'close-tab', id })}
-          onMenu={(id) => void run({ type: 'show-tab-menu', id })}
-          onSelect={(id) => void run({ type: 'select-tab', id })}
+          activeTabId={state?.activeTabId ?? ""}
+          onAdd={() => void run({ type: "new-tab" })}
+          onClose={(id) => void run({ type: "close-tab", id })}
+          onMenu={(id) => void run({ type: "show-tab-menu", id })}
+          onSelect={(id) => void run({ type: "select-tab", id })}
         />
         <div className="drag-region h-full min-w-12 flex-1" />
         <div className="flex h-full shrink-0 items-stretch">
@@ -121,7 +121,7 @@ function BrowserTitleBar({
             size="icon-sm"
             className="h-8 w-11 rounded-none"
             aria-label="Minimizar"
-            onClick={() => void run({ type: 'minimize' })}
+            onClick={() => void run({ type: "minimize" })}
           >
             <Minus />
           </Button>
@@ -129,8 +129,8 @@ function BrowserTitleBar({
             variant="ghost"
             size="icon-sm"
             className="h-8 w-11 rounded-none"
-            aria-label={state?.maximized ? 'Restaurar' : 'Maximizar'}
-            onClick={() => void run({ type: 'toggle-maximize' })}
+            aria-label={state?.maximized ? "Restaurar" : "Maximizar"}
+            onClick={() => void run({ type: "toggle-maximize" })}
           >
             {state?.maximized ? <Minimize2 /> : <Maximize2 />}
           </Button>
@@ -139,7 +139,7 @@ function BrowserTitleBar({
             size="icon-lg"
             className="h-8 w-11 rounded-none hover:bg-red-500! hover:text-white!"
             aria-label="Fechar janela"
-            onClick={() => void run({ type: 'close-window' })}
+            onClick={() => void run({ type: "close-window" })}
           >
             <X />
           </Button>
@@ -154,7 +154,7 @@ function BrowserTitleBar({
           size="icon-xs"
           aria-label="Voltar"
           disabled={!state?.canGoBack}
-          onClick={() => void run({ type: 'back' })}
+          onClick={() => void run({ type: "back" })}
         >
           <ArrowLeft />
         </Button>
@@ -163,7 +163,7 @@ function BrowserTitleBar({
           size="icon-xs"
           aria-label="Avançar"
           disabled={!state?.canGoForward}
-          onClick={() => void run({ type: 'forward' })}
+          onClick={() => void run({ type: "forward" })}
         >
           <ArrowRight />
         </Button>
@@ -172,7 +172,7 @@ function BrowserTitleBar({
           size="icon-xs"
           aria-label="Recarregar"
           disabled={!tab?.url}
-          onClick={() => void run({ type: 'reload' })}
+          onClick={() => void run({ type: "reload" })}
         >
           {tab?.loading ? (
             <LoaderCircle className="animate-spin" />
@@ -181,11 +181,11 @@ function BrowserTitleBar({
           )}
         </Button>
         <form
-          className={`flex min-w-32 flex-1 items-center rounded-full border bg-input/30 pl-2 focus-within:ring-2 focus-within:ring-ring ${tab?.error || error ? 'border-destructive' : ''}`}
+          className={`flex min-w-32 flex-1 items-center rounded-full border bg-input/30 pl-2 focus-within:ring-2 focus-within:ring-ring ${tab?.error || error ? "border-destructive" : ""}`}
           onSubmit={navigate}
           title={tab?.error || error || undefined}
         >
-          <SiteIcon key={tab?.url ?? ''} url={tab?.url ?? ''} />
+          <SiteIcon key={tab?.url ?? ""} url={tab?.url ?? ""} />
           <Input
             ref={addressRef}
             className="h-8 border-0 bg-transparent shadow-none focus-visible:ring-0"
@@ -195,7 +195,7 @@ function BrowserTitleBar({
             spellCheck={false}
             onChange={(event) =>
               setDraft({
-                id: state?.activeTabId ?? '',
+                id: state?.activeTabId ?? "",
                 value: event.target.value,
               })
             }
@@ -209,15 +209,15 @@ function BrowserTitleBar({
           aria-label="Downloads"
           title={
             activeDownloads.length
-              ? `Downloads: ${progress === null ? 'em andamento' : `${progress}%`}`
-              : 'Downloads'
+              ? `Downloads: ${progress === null ? "em andamento" : `${progress}%`}`
+              : "Downloads"
           }
-          onClick={(event) => toggle('downloads', event)}
+          onClick={(event) => toggle("downloads", event)}
         >
           <Download />
           {activeDownloads.length > 0 && (
             <span
-              className={`absolute inset-x-0 bottom-0 h-1 bg-primary ${progress === null ? 'animate-pulse' : ''}`}
+              className={`absolute inset-x-0 bottom-0 h-1 bg-primary ${progress === null ? "animate-pulse" : ""}`}
               style={progress === null ? undefined : { width: `${progress}%` }}
             />
           )}
@@ -228,7 +228,7 @@ function BrowserTitleBar({
             size="icon-sm"
             aria-label="Tema"
             title="Tema"
-            onClick={(event) => toggle('theme', event)}
+            onClick={(event) => toggle("theme", event)}
           >
             <Sun className="dark:hidden" />
             <Moon className="hidden dark:block" />
@@ -239,7 +239,7 @@ function BrowserTitleBar({
             aria-label="Salvar URL"
             title="Salvar URL"
             disabled={!tab?.url}
-            onClick={(event) => toggle('save', event)}
+            onClick={(event) => toggle("save", event)}
           >
             <BookmarkPlus />
           </Button>

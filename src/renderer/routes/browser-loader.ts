@@ -1,13 +1,13 @@
-import type { BrowserState } from '@shared/browser';
-import { startBrowserEvents, useBrowserStore } from '@/store/browser-store';
+import type { BrowserState } from "@shared/browser";
+import { startBrowserEvents, useBrowserStore } from "@/store/browser-store";
 
 const emptyState: BrowserState = {
   canGoBack: false,
   canGoForward: false,
-  theme: 'light',
-  activeTabId: '',
+  theme: "light",
+  activeTabId: "",
   downloads: [],
-  downloadDirectory: '',
+  downloadDirectory: "",
   downloadDirectoryManaged: false,
   maximized: false,
   popup: null,
@@ -19,7 +19,7 @@ export async function browserLoader() {
   startBrowserEvents();
   try {
     useBrowserStore.getState().accept(await window.electron.browser.getState());
-    return { state: useBrowserStore.getState().snapshot!.state, error: '' };
+    return { state: useBrowserStore.getState().snapshot!.state, error: "" };
   } catch (cause) {
     return {
       state: useBrowserStore.getState().snapshot?.state ?? emptyState,

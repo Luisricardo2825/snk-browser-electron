@@ -1,13 +1,13 @@
-import { app } from 'electron';
+import { app } from "electron";
 import {
   existsSync,
   mkdirSync,
   readFileSync,
   renameSync,
   writeFileSync,
-} from 'node:fs';
-import path from 'node:path';
-import type { SavedUrl, Theme } from '@shared/browser';
+} from "node:fs";
+import path from "node:path";
+import type { SavedUrl, Theme } from "@shared/browser";
 
 export interface WindowState {
   x: number;
@@ -31,7 +31,7 @@ interface SettingsFile {
 }
 
 const settingsPath = () =>
-  path.join(app.getPath('userData'), 'browser-settings.json');
+  path.join(app.getPath("userData"), "browser-settings.json");
 
 export default class BrowserSettings {
   private data: SettingsFile;
@@ -60,7 +60,7 @@ export default class BrowserSettings {
     return (
       process.env.SNK_BROWSER_DOWNLOAD_DIR ||
       this.data.downloadDirectory ||
-      app.getPath('downloads')
+      app.getPath("downloads")
     );
   }
 
@@ -90,34 +90,34 @@ export default class BrowserSettings {
   }
 
   private readSettings(): SettingsFile {
-    if (!existsSync(settingsPath())) return { savedUrls: [], theme: 'light' };
-    const settings: unknown = JSON.parse(readFileSync(settingsPath(), 'utf8'));
-    if (!settings || typeof settings !== 'object')
-      throw new Error('Configurações inválidas.');
+    if (!existsSync(settingsPath())) return { savedUrls: [], theme: "light" };
+    const settings: unknown = JSON.parse(readFileSync(settingsPath(), "utf8"));
+    if (!settings || typeof settings !== "object")
+      throw new Error("Configurações inválidas.");
     const value = settings as Record<string, unknown>;
     if (
       !Array.isArray(value.savedUrls) ||
       !value.savedUrls.every(
         (entry) =>
           entry &&
-          typeof entry.folder === 'string' &&
-          typeof entry.name === 'string' &&
-          typeof entry.url === 'string',
+          typeof entry.folder === "string" &&
+          typeof entry.name === "string" &&
+          typeof entry.url === "string",
       )
     ) {
-      throw new Error('Bases salvas inválidas.');
+      throw new Error("Bases salvas inválidas.");
     }
-    if (value.theme !== 'light' && value.theme !== 'dark')
-      throw new Error('Tema salvo inválido.');
+    if (value.theme !== "light" && value.theme !== "dark")
+      throw new Error("Tema salvo inválido.");
     const window = value.window as Partial<WindowState> | undefined;
     const session = value.session as Partial<TabSession> | undefined;
     const urls = Array.isArray(session?.urls)
       ? session.urls.map((url) =>
-          typeof url === 'string' &&
-          (url === '' ||
+          typeof url === "string" &&
+          (url === "" ||
             (URL.canParse(url) && /^https?:$/.test(new URL(url).protocol)))
             ? url
-            : '',
+            : "",
         )
       : undefined;
     return {
@@ -133,7 +133,7 @@ export default class BrowserSettings {
         Number.isInteger(window.height) &&
         window.height !== undefined &&
         window.height >= 420 &&
-        typeof window.maximized === 'boolean'
+        typeof window.maximized === "boolean"
           ? (window as WindowState)
           : undefined,
       session:
@@ -146,7 +146,7 @@ export default class BrowserSettings {
           ? { urls, activeIndex: session.activeIndex! }
           : undefined,
       downloadDirectory:
-        typeof value.downloadDirectory === 'string' &&
+        typeof value.downloadDirectory === "string" &&
         path.isAbsolute(value.downloadDirectory)
           ? value.downloadDirectory
           : undefined,
@@ -161,12 +161,12 @@ export default class BrowserSettings {
     this.data = settings;
   }
 
-  savedTitleForUrl(url: string, savedUrls: SavedUrl[], current = ''): string {
+  savedTitleForUrl(url: string, savedUrls: SavedUrl[], current = ""): string {
     let origin: string;
     try {
       origin = new URL(url).origin;
     } catch {
-      return '';
+      return "";
     }
     const matching = savedUrls.filter((entry) => {
       try {
@@ -178,12 +178,12 @@ export default class BrowserSettings {
     const selected =
       matching.find((entry) => `${entry.folder} / ${entry.name}` === current) ??
       matching[0];
-    return selected ? `${selected.folder} / ${selected.name}` : '';
+    return selected ? `${selected.folder} / ${selected.name}` : "";
   }
 
   private getUrl(input: string) {
     let value = input.trim();
-    if (!value) throw new Error('Informe uma URL.');
+    if (!value) throw new Error("Informe uma URL.");
     if (!URL.canParse(value)) {
       const googleSearchUrl = new URL(
         `https://www.google.com/search?q=${encodeURIComponent(value)}`,
@@ -193,15 +193,15 @@ export default class BrowserSettings {
     const hasScheme = /^[a-z][a-z\d+.-]*:\/\//i.test(value);
     const local = /^(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(value);
     return new URL(
-      hasScheme ? value : `${local ? 'http' : 'https'}://${value}`,
+      hasScheme ? value : `${local ? "http" : "https"}://${value}`,
     );
   }
 
   addressUrl(input: string): string {
     const url = this.getUrl(input);
 
-    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-      throw new Error('Use uma URL HTTP ou HTTPS.');
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      throw new Error("Use uma URL HTTP ou HTTPS.");
     }
     return url.href;
   }

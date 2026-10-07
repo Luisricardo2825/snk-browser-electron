@@ -1,8 +1,8 @@
-import { BrowserWindow, WebContentsView } from 'electron';
-import contextMenu from 'electron-context-menu';
-import type { BrowserTab } from '@shared/browser';
-import BrowserDownloads from './BrowserDownloads';
-import BrowserSettings from './BrowserSettings';
+import { BrowserWindow, WebContentsView } from "electron";
+import contextMenu from "electron-context-menu";
+import type { BrowserTab } from "@shared/browser";
+import BrowserDownloads from "./BrowserDownloads";
+import BrowserSettings from "./BrowserSettings";
 
 export default class BrowserViewFactory {
   constructor(
@@ -26,7 +26,7 @@ export default class BrowserViewFactory {
     });
     const contents = view.webContents;
     contents.setUserAgent(
-      contents.getUserAgent().replace(/\sElectron\/[^\s]+/i, ''),
+      contents.getUserAgent().replace(/\sElectron\/[^\s]+/i, ""),
     );
     const saveAs = (url: string) =>
       this.downloads.saveAs(this.window, contents, url);
@@ -36,70 +36,70 @@ export default class BrowserViewFactory {
       showCopyImageAddress: true,
       showCopyVideoAddress: true,
       labels: {
-        cut: 'Recortar',
-        copy: 'Copiar',
-        paste: 'Colar',
-        selectAll: 'Selecionar tudo',
-        copyLink: 'Copiar endereço do link',
-        copyImage: 'Copiar imagem',
-        copyImageAddress: 'Copiar endereço da imagem',
-        copyVideoAddress: 'Copiar endereço do vídeo',
-        searchWithGoogle: 'Pesquisar no Google',
-        inspect: 'Inspecionar',
+        cut: "Recortar",
+        copy: "Copiar",
+        paste: "Colar",
+        selectAll: "Selecionar tudo",
+        copyLink: "Copiar endereço do link",
+        copyImage: "Copiar imagem",
+        copyImageAddress: "Copiar endereço da imagem",
+        copyVideoAddress: "Copiar endereço do vídeo",
+        searchWithGoogle: "Pesquisar no Google",
+        inspect: "Inspecionar",
       },
       prepend: (_actions, params) => {
         const menu: Electron.MenuItemConstructorOptions[] = [];
         if (/^https?:\/\//i.test(params.linkURL)) {
           menu.push(
             {
-              label: 'Abrir link em nova guia',
+              label: "Abrir link em nova guia",
               click: () => this.onNewTab(params.linkURL),
             },
             {
-              label: 'Salvar link como…',
+              label: "Salvar link como…",
               click: () => void saveAs(params.linkURL).catch(console.error),
             },
           );
         }
         if (
-          (params.mediaType === 'image' || params.mediaType === 'video') &&
+          (params.mediaType === "image" || params.mediaType === "video") &&
           /^https?:\/\//i.test(params.srcURL)
         ) {
           menu.push({
-            label: `Salvar ${params.mediaType === 'image' ? 'imagem' : 'vídeo'} como…`,
+            label: `Salvar ${params.mediaType === "image" ? "imagem" : "vídeo"} como…`,
             click: () => void saveAs(params.srcURL).catch(console.error),
           });
         }
         if (params.selectionText.trim()) {
           menu.push({
-            id: 'searchWithGoogle',
-            label: 'Pesquisar seleção no Google',
+            id: "searchWithGoogle",
+            label: "Pesquisar seleção no Google",
             click: () =>
               this.onNewTab(
                 `https://www.google.com/search?q=${encodeURIComponent(params.selectionText)}`,
               ),
           });
         }
-        if (menu.length) menu.push({ type: 'separator' });
+        if (menu.length) menu.push({ type: "separator" });
         if (
           !params.linkURL &&
-          params.mediaType === 'none' &&
+          params.mediaType === "none" &&
           !params.isEditable &&
           !params.selectionText
         ) {
           menu.push(
             {
-              label: 'Voltar',
+              label: "Voltar",
               enabled: contents.navigationHistory.canGoBack(),
               click: () => contents.navigationHistory.goBack(),
             },
             {
-              label: 'Avançar',
+              label: "Avançar",
               enabled: contents.navigationHistory.canGoForward(),
               click: () => contents.navigationHistory.goForward(),
             },
-            { label: 'Recarregar', click: () => contents.reload() },
-            { type: 'separator' },
+            { label: "Recarregar", click: () => contents.reload() },
+            { type: "separator" },
           );
         }
         return menu;
@@ -121,7 +121,7 @@ export default class BrowserViewFactory {
 
           const parent = this.window;
           return {
-            action: 'allow',
+            action: "allow",
             createWindow(options) {
               return new BrowserWindow({
                 ...options,
@@ -144,7 +144,7 @@ export default class BrowserViewFactory {
       } catch {
         // Unsupported schemes cannot create browser tabs.
       }
-      return { action: 'deny' };
+      return { action: "deny" };
     });
     const updateUrl = (_event: Electron.Event, url: string) => {
       if (!this.hasTab(tab.id)) return;
@@ -154,28 +154,28 @@ export default class BrowserViewFactory {
         this.settings.savedUrls,
         tab.savedTitle,
       );
-      tab.error = '';
+      tab.error = "";
       this.onChange();
     };
-    contents.on('did-navigate', updateUrl);
-    contents.on('did-navigate-in-page', updateUrl);
-    contents.on('page-title-updated', (_event, title) => {
+    contents.on("did-navigate", updateUrl);
+    contents.on("did-navigate-in-page", updateUrl);
+    contents.on("page-title-updated", (_event, title) => {
       if (!this.hasTab(tab.id)) return;
       tab.title = title || new URL(tab.url).hostname;
       this.onChange();
     });
-    contents.on('did-start-loading', () => {
+    contents.on("did-start-loading", () => {
       if (!this.hasTab(tab.id)) return;
       tab.loading = true;
       this.onChange();
     });
-    contents.on('did-stop-loading', () => {
+    contents.on("did-stop-loading", () => {
       if (!this.hasTab(tab.id)) return;
       tab.loading = false;
       this.onChange();
     });
     contents.on(
-      'did-fail-load',
+      "did-fail-load",
       (_event, code, description, _url, mainFrame) => {
         if (!mainFrame || code === -3 || !this.hasTab(tab.id)) return;
         tab.loading = false;

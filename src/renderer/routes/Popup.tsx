@@ -1,9 +1,9 @@
-import ThemePopup from '@/dialogs/theme';
-import SitesPopup from '@/dialogs/sites';
-import SaveSitePopup from '@/dialogs/save-site';
-import { DownloadsPopup } from '@/dialogs/downloads-popup';
-import type { RouteProps } from '@/@types/popup';
-import { Route, Routes, useOutletContext } from 'react-router';
+import ThemePopup from "@/dialogs/theme";
+import SitesPopup from "@/dialogs/sites";
+import SaveSitePopup from "@/dialogs/save-site";
+import { DownloadsPopup } from "@/dialogs/downloads-popup";
+import type { RouteProps } from "@/@types/popup";
+import { Route, Routes, useOutletContext } from "react-router";
 
 function PopupApp() {
   const props = useOutletContext<RouteProps>();
