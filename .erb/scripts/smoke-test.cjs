@@ -15,30 +15,27 @@ const electronVite = resolvePath(
   dirname(require.resolve("electron-vite")),
   "../bin/electron-vite.js",
 );
-const child = spawn(
-  packagedApp || process.execPath,
-  packagedApp
-    ? [`--remote-debugging-port=${debugPort}`]
-    : [
-        electronVite,
-        "dev",
-        "--remoteDebuggingPort",
-        String(debugPort),
-        ...(process.env.CI && process.platform === "linux"
-          ? ["--noSandbox"]
-          : []),
-      ],
-  {
-    detached: !windows,
-    env: {
-      ...process.env,
-      PORT: String(port),
-      SNK_BROWSER_DATA_DIR: dataDir,
-      SNK_BROWSER_DOWNLOAD_DIR: dataDir,
-    },
-    stdio: ["ignore", "pipe", "pipe"],
+const launchArgs = packagedApp
+  ? [`--remote-debugging-port=${debugPort}`]
+  : [
+      electronVite,
+      "dev",
+      "--remoteDebuggingPort",
+      String(debugPort),
+      ...(process.env.CI && process.platform === "linux"
+        ? ["--noSandbox"]
+        : []),
+    ];
+const child = spawn(packagedApp || process.execPath, launchArgs, {
+  detached: !windows,
+  env: {
+    ...process.env,
+    PORT: String(port),
+    SNK_BROWSER_DATA_DIR: dataDir,
+    SNK_BROWSER_DOWNLOAD_DIR: dataDir,
   },
-);
+  stdio: ["ignore", "pipe", "pipe"],
+});
 let output = "";
 let exited = false;
 let socket;
@@ -351,16 +348,10 @@ async function main() {
   assert.ok(
     popupBounds.x + popupBounds.width <= mainBounds.x + mainBounds.width - 12,
   );
-  // Xvfb has no window manager to report precise child window placement.
-  if (process.platform === "linux" && process.env.CI) {
-    console.log(
-      `Xvfb popup bounds: ${JSON.stringify({ mainBounds, popupBounds })}`,
-    );
-  } else {
-    assert.ok(
-      popupBounds.x + popupBounds.width >= mainBounds.x + mainBounds.width - 16,
-    );
-  }
+  assert.ok(
+    popupBounds.x + popupBounds.width >= mainBounds.x + mainBounds.width - 16,
+    `Popup is not right-aligned: ${JSON.stringify({ mainBounds, popupBounds })}`,
+  );
   assert.ok(
     popupBounds.y + popupBounds.height <= mainBounds.y + mainBounds.height - 12,
   );
@@ -583,22 +574,16 @@ async function main() {
   for (let attempt = 0; attempt < 40 && !exited; attempt += 1) await delay(250);
   assert.equal(exited, true, `Electron did not exit: ${output}`);
   exited = false;
-  const reopened = spawn(
-    packagedApp || process.execPath,
-    packagedApp
-      ? [`--remote-debugging-port=${debugPort}`]
-      : [electronVite, "dev", "--remoteDebuggingPort", String(debugPort)],
-    {
-      detached: !windows,
-      env: {
-        ...process.env,
-        PORT: String(port),
-        SNK_BROWSER_DATA_DIR: dataDir,
-        SNK_BROWSER_DOWNLOAD_DIR: dataDir,
-      },
-      stdio: ["ignore", "pipe", "pipe"],
+  const reopened = spawn(packagedApp || process.execPath, launchArgs, {
+    detached: !windows,
+    env: {
+      ...process.env,
+      PORT: String(port),
+      SNK_BROWSER_DATA_DIR: dataDir,
+      SNK_BROWSER_DOWNLOAD_DIR: dataDir,
     },
-  );
+    stdio: ["ignore", "pipe", "pipe"],
+  });
   reopened.stdout.on("data", (data) => {
     output += data;
   });

@@ -117,6 +117,7 @@ export default class BrowserPopups {
       if (this.popupWindow !== popup) return;
       this.positionPopup();
       popup.show();
+      this.positionPopup();
       popup.focus();
     });
     const url = new URL(resolveHtmlPath("index.html"));
