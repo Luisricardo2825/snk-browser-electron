@@ -29,6 +29,8 @@ jobs:
       - name: Clean install
         run: |
           pnpm ci
+          node node_modules/electron/install.js
+          node -e "const fs = require('node:fs'); if (!fs.existsSync(require('electron'))) throw new Error('Electron binary missing')"
 
       - name: pnpm test
         env:
