@@ -1,50 +1,46 @@
-import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
-import icon from '../../assets/icon.svg';
-import './App.css';
+import '@/globals.css';
 
-function Hello() {
+import type { BrowserCommand, BrowserState } from '@shared/browser';
+
+import { HashRouter, Route, Routes } from 'react-router';
+import BrowserApp from '@/components/browser/Browser';
+import { DownloadsPopup } from '@/dialogs/downloads-popup';
+import { useBrowser } from '@/hooks/use-browser';
+import ThemePopup from '@/dialogs/theme';
+import SitesPopup from '@/dialogs/sites';
+import SaveSitePopup from '@/dialogs/save-site';
+import { PopupProps } from '@/@types/popup';
+
+function PopupApp(props: {
+  state: BrowserState;
+  error: string;
+  run: (command: BrowserCommand) => Promise<void>;
+}) {
   return (
-    <div>
-      <div className="Hello">
-        <img width="200" alt="icon" src={icon} />
-      </div>
-      <h1>electron-react-boilerplate</h1>
-      <div className="Hello">
-        <a
-          href="https://electron-react-boilerplate.js.org/"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <button type="button">
-            <span role="img" aria-label="books">
-              📚
-            </span>
-            Read our docs
-          </button>
-        </a>
-        <a
-          href="https://github.com/sponsors/electron-react-boilerplate"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <button type="button">
-            <span role="img" aria-label="folded hands">
-              🙏
-            </span>
-            Donate
-          </button>
-        </a>
-      </div>
-    </div>
+    <Routes>
+      <Route path="theme" element={<ThemePopup {...props} />} />
+      <Route path="sites" element={<SitesPopup {...props} />} />
+      <Route path="downloads" element={<DownloadsPopup {...props} />} />
+      <Route path="save" element={<SaveSitePopup {...props} />} />
+    </Routes>
   );
 }
 
 export default function App() {
+  const browserProps = useBrowser();
   return (
-    <Router>
+    <HashRouter>
       <Routes>
-        <Route path="/" element={<Hello />} />
+        <Route path="/" element={<BrowserApp {...browserProps} />} />
+        <Route
+          path="/popup/*"
+          element={
+            browserProps.state ? (
+              <PopupApp {...(browserProps as PopupProps)} />
+            ) : null
+          }
+        />
       </Routes>
-    </Router>
+    </HashRouter>
   );
 }

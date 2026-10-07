@@ -1,6 +1,8 @@
 import path from 'node:path';
 import { defineConfig } from 'electron-vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+
 import svgr from 'vite-plugin-svgr';
 import { dependencies as nativeDependencies } from './release/app/package.json';
 
@@ -12,8 +14,16 @@ const external = nativeModules.flatMap((name) => [
   new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/`),
 ]);
 
+const resolve = {
+  alias: {
+    '@': path.join(root, 'src/renderer'),
+    '@main': path.join(root, 'src/main'),
+    '@shared': path.join(root, 'src/shared'),
+  },
+};
 export default defineConfig({
   main: {
+    resolve: resolve,
     build: {
       outDir: 'release/app/dist/main',
       sourcemap: true,
@@ -26,6 +36,7 @@ export default defineConfig({
     },
   },
   preload: {
+    resolve: resolve,
     build: {
       outDir: 'release/app/dist/preload',
       sourcemap: true,
@@ -33,14 +44,15 @@ export default defineConfig({
       rollupOptions: {
         input: path.join(root, 'src/main/preload.ts'),
         external,
-        output: { entryFileNames: 'preload.js' },
+        output: { entryFileNames: '[name].js' },
       },
     },
   },
   renderer: {
+    resolve: resolve,
     root: path.join(root, 'src/renderer'),
     base: './',
-    plugins: [react({}), svgr()],
+    plugins: [react({}), svgr(), tailwindcss()],
     server: {
       host: 'localhost',
       port: Number(process.env.PORT || 1212),

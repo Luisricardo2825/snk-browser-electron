@@ -9,19 +9,19 @@
  * `./release/app/dist/main/main.js` using electron-vite.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, Menu } from 'electron';
 import log from 'electron-log';
-import MenuBuilder from './menu';
+import { attachBrowserWindow } from './browser';
+import { registerRuffleScheme, serveRuffleResources } from './ruffle';
 import { resolveHtmlPath } from './util';
-import startAutoUpdates from './updates';
 
 let mainWindow: BrowserWindow | null = null;
 
-ipcMain.on('ipc-example', async (event, arg) => {
-  const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
-  console.log(msgTemplate(arg));
-  event.reply('ipc-example', msgTemplate('pong'));
-});
+app.setName('snk-browser');
+registerRuffleScheme();
+if (process.env.SNK_BROWSER_DATA_DIR) {
+  app.setPath('userData', process.env.SNK_BROWSER_DATA_DIR);
+}
 
 if (process.env.NODE_ENV === 'production') {
   process.setSourceMapsEnabled(true);
@@ -29,12 +29,6 @@ if (process.env.NODE_ENV === 'production') {
 
 const isDebug =
   process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
-
-if (isDebug) {
-  void import('electron-debug')
-    .then(({ default: debug }) => debug())
-    .catch(console.error);
-}
 
 const installExtensions = async () => {
   const { installExtension, REACT_DEVELOPER_TOOLS } =
@@ -59,13 +53,24 @@ const createWindow = async () => {
 
   mainWindow = new BrowserWindow({
     show: false,
-    width: 1024,
-    height: 728,
+    width: 1200,
+    height: 800,
+    minWidth: 640,
+    minHeight: 420,
+    frame: false,
+    title: 'SNK Browser',
+    backgroundColor: '#111214',
     icon: getAssetPath('icon.png'),
     webPreferences: {
       preload: path.join(__dirname, '../preload/preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+      devTools: false,
     },
   });
+
+  attachBrowserWindow(mainWindow);
 
   mainWindow.on('ready-to-show', () => {
     if (!mainWindow) {
@@ -82,14 +87,19 @@ const createWindow = async () => {
     mainWindow = null;
   });
 
-  const menuBuilder = new MenuBuilder(mainWindow);
-  menuBuilder.buildMenu();
+  Menu.setApplicationMenu(
+    process.platform === 'darwin'
+      ? Menu.buildFromTemplate([
+          { role: 'appMenu' },
+          { role: 'editMenu' },
+          { role: 'viewMenu' },
+          { role: 'windowMenu' },
+        ])
+      : null,
+  );
+  mainWindow.setMenuBarVisibility(false);
 
-  // Open urls in the user's browser
-  mainWindow.webContents.setWindowOpenHandler((edata) => {
-    shell.openExternal(edata.url);
-    return { action: 'deny' };
-  });
+  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
 
   await mainWindow.loadURL(resolveHtmlPath('index.html'));
 };
@@ -122,8 +132,8 @@ function onActivate() {
 app
   .whenReady()
   .then(async () => {
+    await serveRuffleResources();
     await createWindow();
-    startAutoUpdates();
     app.on('activate', onActivate);
   })
   .catch((error: unknown) => {

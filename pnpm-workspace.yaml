@@ -1,0 +1,6 @@
+allowBuilds:
+  '@parcel/watcher': false
+  '@swc/core': false
+  electron-winstaller: false
+  esbuild: false
+  unrs-resolver: false
