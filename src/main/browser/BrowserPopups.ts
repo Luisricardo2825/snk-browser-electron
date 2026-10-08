@@ -75,6 +75,15 @@ export default class BrowserPopups {
     if (!this.window.isDestroyed()) this.onChange();
   }
 
+  closeOnParentMouseUp(): void {
+    const popup = this.popupWindow;
+    if (!popup) return;
+    if (this.popupBlurTimer) clearTimeout(this.popupBlurTimer);
+    this.popupBlurTimer = setTimeout(() => {
+      if (this.popupWindow === popup) this.closePopup();
+    }, 120);
+  }
+
   togglePopup(kind: PopupKind, anchor?: PopupAnchor): void {
     if (this.popupKind === kind) {
       this.closePopup();
@@ -113,13 +122,15 @@ export default class BrowserPopups {
     popup.on("closed", () => {
       if (this.popupWindow === popup) this.closePopup();
     });
-    popup.once("ready-to-show", () => {
-      if (this.popupWindow !== popup) return;
+    const showPopup = () => {
+      if (this.popupWindow !== popup || popup.isVisible()) return;
       this.positionPopup();
       popup.show();
       this.positionPopup();
       popup.focus();
-    });
+    };
+    popup.once("ready-to-show", showPopup);
+    popup.webContents.once("did-finish-load", showPopup);
     const url = new URL(resolveHtmlPath("index.html"));
     url.hash = `/popup/${kind}`;
     void popup.loadURL(url.href).catch((error: unknown) => {

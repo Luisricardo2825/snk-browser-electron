@@ -19,6 +19,7 @@ export default class BrowserTabs {
     private readonly settings: BrowserSettings,
     private readonly downloads: BrowserDownloads,
     private readonly onChange: () => void,
+    onParentMouseUp: () => void,
   ) {
     this.viewFactory = new BrowserViewFactory(
       window,
@@ -28,6 +29,7 @@ export default class BrowserTabs {
       (id) => Boolean(this.tab(id)),
       (url) => this.newTab(url),
       onChange,
+      onParentMouseUp,
     );
   }
 

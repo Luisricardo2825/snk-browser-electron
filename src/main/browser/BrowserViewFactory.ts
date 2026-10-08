@@ -13,6 +13,7 @@ export default class BrowserViewFactory {
     private readonly hasTab: (id: string) => boolean,
     private readonly onNewTab: (url?: string) => void,
     private readonly onChange: () => void,
+    private readonly onParentMouseUp: () => void,
   ) {}
 
   createView(tab: BrowserTab): WebContentsView {
@@ -25,6 +26,9 @@ export default class BrowserViewFactory {
       },
     });
     const contents = view.webContents;
+    contents.on("before-mouse-event", (_event, mouse) => {
+      if (mouse.type === "mouseUp") this.onParentMouseUp();
+    });
     contents.setUserAgent(
       contents.getUserAgent().replace(/\sElectron\/[^\s]+/i, ""),
     );

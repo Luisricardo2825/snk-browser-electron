@@ -410,7 +410,6 @@ async function main() {
     returnByValue: true,
   });
   assert.equal(resource.result.value, true);
-  siteSocket.close();
   await evaluate(
     `window.electron.browser.command({type:'save-environment',entry:{folder:'Teste',name:'Base',url:${JSON.stringify(siteUrl)}}})`,
   );
@@ -453,6 +452,31 @@ async function main() {
       ),
     "shadcn theme picker",
     10_000,
+  );
+  await siteCommand("Input.dispatchMouseEvent", {
+    type: "mousePressed",
+    x: 600,
+    y: 400,
+    button: "left",
+    clickCount: 1,
+  });
+  await siteCommand("Input.dispatchMouseEvent", {
+    type: "mouseReleased",
+    x: 600,
+    y: 400,
+    button: "left",
+    clickCount: 1,
+  });
+  await waitFor(
+    () =>
+      evaluate(
+        "window.electron.browser.getState().then(({ state }) => state.popup === null)",
+      ),
+    "popup close on parent site click",
+  );
+  siteSocket.close();
+  await evaluate(
+    'window.electron.browser.command({type:"toggle-popup",popup:"theme",anchor:{x:10,y:10,width:20,height:20}})',
   );
   await evaluate('window.electron.browser.command({type:"select-tab",id:"1"})');
   await waitFor(

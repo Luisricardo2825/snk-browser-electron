@@ -114,7 +114,9 @@ function BrowserTitleBar({
           onMenu={(id) => void run({ type: "show-tab-menu", id })}
           onSelect={(id) => void run({ type: "select-tab", id })}
         />
-        <div className="drag-region h-full min-w-12 flex-1" />
+        <div
+          className={`${state?.popup ? "" : "drag-region"} h-full min-w-12 flex-1`}
+        />
         <div className="flex h-full shrink-0 items-stretch">
           <Button
             variant="ghost"

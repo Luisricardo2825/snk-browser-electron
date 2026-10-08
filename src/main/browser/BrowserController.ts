@@ -28,13 +28,22 @@ export default class BrowserController {
       this.settings,
       () => this.publish(),
     );
-    this.tabs = new BrowserTabs(window, this.settings, this.downloads, () => {
-      if (!this.restoring) this.settings.setSession(this.tabs.session());
-      this.publish();
-    });
+    this.tabs = new BrowserTabs(
+      window,
+      this.settings,
+      this.downloads,
+      () => {
+        if (!this.restoring) this.settings.setSession(this.tabs.session());
+        this.publish();
+      },
+      () => this.popups.closeOnParentMouseUp(),
+    );
     this.popups = new BrowserPopups(window, this.settings, () =>
       this.publish(),
     );
+    window.webContents.on("before-mouse-event", (_event, mouse) => {
+      if (mouse.type === "mouseUp") this.popups.closeOnParentMouseUp();
+    });
     this.tabs.restore(this.settings.session);
     this.restoring = false;
     window.on("resize", () => {
@@ -119,6 +128,7 @@ export default class BrowserController {
         break;
       case "select-tab":
         this.tabs.selectTab(command.id);
+        this.popups.closePopup();
         break;
       case "close-tab":
         this.tabs.closeTab(command.id);
