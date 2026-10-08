@@ -595,6 +595,17 @@ async function main() {
     );
     return saved.window?.width >= 640 && saved.window?.height >= 420;
   }, "saved window");
+  if (process.platform === "darwin") {
+    await waitFor(
+      async () => {
+        const response = await fetch(`http://127.0.0.1:${debugPort}/json/list`);
+        return !(await response.json()).some((entry) => entry.id === target.id);
+      },
+      "closed window",
+      10_000,
+    );
+    process.kill(-child.pid, "SIGTERM");
+  }
   for (let attempt = 0; attempt < 40 && !exited; attempt += 1) await delay(250);
   assert.equal(exited, true, `Electron did not exit: ${output}`);
   exited = false;
