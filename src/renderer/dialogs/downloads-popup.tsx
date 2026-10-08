@@ -54,9 +54,12 @@ export function DownloadsPopup({ state, error, run }: RouteProps) {
     }
   }, [error]);
   return (
-    <div className="flex h-screen flex-col bg-popover text-popover-foreground" onBlur={()=>{
-      window.close();
-    }}>
+    <div
+      className="flex h-screen flex-col bg-popover text-popover-foreground"
+      onBlur={() => {
+        window.close();
+      }}
+    >
       <header className="flex h-10 shrink-0 items-center justify-between border-b px-3">
         <h1 className="text-sm font-medium">Downloads</h1>
         {finished && (
