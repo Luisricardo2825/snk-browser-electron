@@ -67,6 +67,7 @@ export type BrowserCommand =
   | { type: "save-environment"; entry: SavedUrl }
   | { type: "remove-environment"; entry: SavedUrl }
   | { type: "import-environments" }
+  | { type: "export-environments" }
   | { type: "set-theme"; theme: Theme }
   | { type: "toggle-popup"; popup: PopupKind; anchor?: PopupAnchor }
   | { type: "close-popup" }

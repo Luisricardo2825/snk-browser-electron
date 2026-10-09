@@ -501,6 +501,9 @@ async function main() {
     "popup toggle close",
   );
   await evaluate(
+    'window.electron.browser.command({type:"save-environment",entry:{folder:"Outro",name:"Sem resultado",url:"https://example.org/"}})',
+  );
+  await evaluate(
     'window.electron.browser.command({type:"toggle-popup",popup:"sites",anchor:{x:10,y:10,width:20,height:20}})',
   );
   const sitesTarget = await waitFor(async () => {
@@ -513,10 +516,88 @@ async function main() {
     () =>
       evaluateTarget(
         sitesTarget,
-        'Boolean(document.body?.innerText.includes("Teste") && document.body?.innerText.includes("Base") && document.body?.innerText.includes("Importar bases"))',
+        'Boolean(document.body?.innerText.includes("Teste") && document.body?.innerText.includes("Outro") && !document.body?.innerText.includes("Tela inicial"))',
       ),
     "shadcn saved sites picker",
     10_000,
+  );
+  const collapse = await evaluateTarget(
+    sitesTarget,
+    `(async () => {
+      const trigger = document.querySelector('[data-slot="collapsible-trigger"]');
+      const panel = document.querySelector('[data-slot="collapsible-content"]');
+      const height = () => panel.getBoundingClientRect().height;
+      const initial = height();
+      trigger.click();
+      await new Promise((done) => setTimeout(done, 80));
+      const opening = height();
+      await new Promise((done) => setTimeout(done, 220));
+      const opened = height();
+      trigger.click();
+      await new Promise((done) => setTimeout(done, 80));
+      const closing = height();
+      await new Promise((done) => setTimeout(done, 220));
+      return { initial, opening, opened, closing, closed: height() };
+    })()`,
+  );
+  assert.ok(
+    collapse.initial === 0 &&
+      collapse.opening > 0 &&
+      collapse.opening < collapse.opened &&
+      collapse.closing > 0 &&
+      collapse.closing < collapse.opened &&
+      collapse.closed === 0,
+    `saved sites collapse animation: ${JSON.stringify(collapse)}`,
+  );
+  await evaluateTarget(
+    sitesTarget,
+    `(() => {
+      const input = document.querySelector('[data-slot="command-input"]');
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, 'Base');
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    })()`,
+  );
+  await waitFor(
+    () =>
+      evaluateTarget(
+        sitesTarget,
+        `(() => {
+          const groups = [...document.querySelectorAll('[data-slot="collapsible"]')];
+          const expanded = (name) => groups.find((group) => group.textContent.includes(name))
+            ?.querySelector('[data-slot="collapsible-trigger"]')?.getAttribute('aria-expanded');
+          return expanded('Teste') === 'true' && expanded('Outro') === 'false';
+        })()`,
+      ),
+    "saved sites search opens matching group",
+  );
+  await evaluateTarget(
+    sitesTarget,
+    `(() => {
+      const input = document.querySelector('[data-slot="command-input"]');
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, '');
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    })()`,
+  );
+  await waitFor(
+    () =>
+      evaluateTarget(
+        sitesTarget,
+        `Boolean([...document.querySelectorAll('[data-slot="collapsible-trigger"]')]
+          .every((trigger) => trigger.getAttribute('aria-expanded') === 'false'))`,
+      ),
+    "saved sites search restores closed groups",
+  );
+  await evaluateTarget(
+    sitesTarget,
+    'document.querySelector(\'[data-slot="context-menu-trigger"]\').dispatchEvent(new MouseEvent("contextmenu", {bubbles:true,cancelable:true,button:2,clientX:20,clientY:20}))',
+  );
+  await waitFor(
+    () =>
+      evaluateTarget(
+        sitesTarget,
+        'Boolean(document.body.innerText.includes("Importar ambientes") && document.body.innerText.includes("Exportar ambientes"))',
+      ),
+    "saved sites context menu",
   );
   await evaluate(
     'window.electron.browser.command({type:"toggle-popup",popup:"sites"})',

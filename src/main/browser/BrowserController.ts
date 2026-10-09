@@ -1,5 +1,5 @@
 import { BrowserWindow, dialog, nativeTheme } from "electron";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import type {
   BrowserCommand,
   BrowserSnapshot,
@@ -199,6 +199,21 @@ export default class BrowserController {
         this.settings.saveUrls(next);
         this.tabs.refreshSavedTitles(next);
         this.publish();
+        break;
+      }
+      case "export-environments": {
+        const result = await dialog.showSaveDialog(this.window, {
+          title: "Exportar bases salvas",
+          defaultPath: "ambientes-snk-browser.json",
+          filters: [{ name: "JSON", extensions: ["json"] }],
+        });
+        if (!result.canceled && result.filePath) {
+          writeFileSync(
+            result.filePath,
+            `${JSON.stringify(this.settings.savedUrls, null, 2)}\n`,
+            "utf8",
+          );
+        }
         break;
       }
       case "set-theme":
