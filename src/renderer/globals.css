@@ -138,6 +138,23 @@
   }
 }
 
+body:has([data-popup-panel]) {
+  background: transparent;
+}
+
+[data-popup-panel] {
+  opacity: 0;
+  transform: scale(0.95);
+  transition:
+    opacity 100ms ease-out,
+    transform 100ms ease-out;
+}
+
+[data-popup-panel][data-visible="true"]:not([data-closing]) {
+  opacity: 1;
+  transform: scale(1);
+}
+
 @keyframes indeterminate {
   0% {
     transform: translateX(-100%) scaleX(0.5);

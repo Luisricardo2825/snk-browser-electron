@@ -37,10 +37,9 @@ export default class BrowserController {
         this.publish();
       },
       () => this.popups.closeOnParentMouseUp(),
+      () => this.popups.raisePopup(),
     );
-    this.popups = new BrowserPopups(window, this.settings, () =>
-      this.publish(),
-    );
+    this.popups = new BrowserPopups(window, () => this.publish());
     window.webContents.on("before-mouse-event", (_event, mouse) => {
       if (mouse.type === "mouseUp") this.popups.closeOnParentMouseUp();
     });
@@ -50,7 +49,6 @@ export default class BrowserController {
       this.tabs.layout();
       this.popups.positionPopup();
     });
-    window.on("move", () => this.popups.positionPopup());
     window.on("maximize", () => this.publish());
     window.on("unmaximize", () => this.publish());
     window.on("closed", () => {

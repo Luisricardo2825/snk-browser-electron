@@ -336,24 +336,14 @@ async function main() {
     "download in popup",
     10_000,
   );
-  const mainBounds = await evaluate(
-    "({x:window.screenX,y:window.screenY,width:window.outerWidth,height:window.outerHeight})",
-  );
-  const popupBounds = await evaluateTarget(
-    downloadsTarget,
-    "({x:window.screenX,y:window.screenY,width:window.outerWidth,height:window.outerHeight})",
-  );
-  assert.ok(popupBounds.x >= mainBounds.x + 12);
-  assert.ok(popupBounds.y >= mainBounds.y + 12);
-  assert.ok(
-    popupBounds.x + popupBounds.width <= mainBounds.x + mainBounds.width - 12,
-  );
-  assert.ok(
-    popupBounds.x + popupBounds.width >= mainBounds.x + mainBounds.width - 16,
-    `Popup is not right-aligned: ${JSON.stringify({ mainBounds, popupBounds })}`,
-  );
-  assert.ok(
-    popupBounds.y + popupBounds.height <= mainBounds.y + mainBounds.height - 12,
+  await waitFor(
+    () =>
+      evaluateTarget(
+        downloadsTarget,
+        "window.innerWidth === 300 && window.innerHeight === 300",
+      ),
+    "downloads popup size",
+    10_000,
   );
   await evaluate(
     'window.electron.browser.command({type:"toggle-popup",popup:"downloads"})',
@@ -452,6 +442,20 @@ async function main() {
       ),
     "shadcn theme picker",
     10_000,
+  );
+  await evaluateTarget(
+    themeTarget,
+    'document.querySelector("[data-slot=command-item]")?.click()',
+  );
+  await waitFor(
+    () =>
+      evaluate(
+        'window.electron.browser.getState().then(({ state }) => state.theme === "light" && state.popup === null)',
+      ),
+    "theme selected from popup view",
+  );
+  await evaluate(
+    'window.electron.browser.command({type:"toggle-popup",popup:"theme",anchor:{x:10,y:10,width:20,height:20}})',
   );
   await siteCommand("Input.dispatchMouseEvent", {
     type: "mousePressed",

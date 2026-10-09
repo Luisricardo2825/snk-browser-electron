@@ -20,6 +20,7 @@ export default class BrowserTabs {
     private readonly downloads: BrowserDownloads,
     private readonly onChange: () => void,
     onParentMouseUp: () => void,
+    private readonly onViewAdded: () => void,
   ) {
     this.viewFactory = new BrowserViewFactory(
       window,
@@ -116,7 +117,10 @@ export default class BrowserTabs {
       if (this.activeView)
         this.window.contentView.removeChildView(this.activeView);
       this.activeView = next;
-      if (next) this.window.contentView.addChildView(next);
+      if (next) {
+        this.window.contentView.addChildView(next);
+        this.onViewAdded();
+      }
     }
     this.layout();
     next?.webContents.focus();
