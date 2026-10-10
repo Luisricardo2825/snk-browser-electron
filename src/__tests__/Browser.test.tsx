@@ -29,6 +29,14 @@ const state: BrowserState = {
   savedUrls: [],
   theme: "light",
   popup: null,
+  webConnection: {
+    autoStart: false,
+    controlExternal: true,
+    executablePath: "",
+    port: 9098,
+    status: "stopped",
+    error: "",
+  },
 };
 
 test("navega pela barra de endereço e abre nova aba", async () => {
@@ -37,6 +45,7 @@ test("navega pela barra de endereço e abre nova aba", async () => {
     browser: {
       getState: jest.fn().mockResolvedValue({ revision: 1, state }),
       command,
+      resizePopup: jest.fn().mockResolvedValue(undefined),
       onState: jest.fn().mockReturnValue(() => {}),
     },
   };

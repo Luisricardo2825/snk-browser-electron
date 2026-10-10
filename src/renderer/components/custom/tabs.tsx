@@ -71,15 +71,17 @@ export function BrowserTabs({
             >
               <TabIcon key={tab.url} url={tab.url} loading={tab.loading} />
               <span className="truncate">{tab.savedTitle || tab.title}</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              className="mr-1 size-5 shrink-0 opacity-0 group-hover:opacity-100 group-data-[active=true]:opacity-100"
-              aria-label={`Fechar ${tab.savedTitle || tab.title}`}
-              onClick={() => onClose(tab.id)}
-            >
-              <X className="size-3" />
+              <Button
+                role="link"
+                variant="secondary"
+                size="icon-xs"
+                className="mr-1 size-5 shrink-0 opacity-0 group-hover:opacity-100 group-data-[active=true]:opacity-100"
+                aria-label={`Fechar ${tab.savedTitle || tab.title}`}
+                onClick={() => onClose(tab.id)}
+                title={`Fechar ${tab.savedTitle || tab.title}`}
+              >
+                <X className="size-3" />
+              </Button>
             </Button>
           </div>
         ))}

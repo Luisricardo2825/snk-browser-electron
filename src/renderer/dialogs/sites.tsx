@@ -7,12 +7,8 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandEmpty,
 } from "@/components/ui/command";
-import { SavedUrl } from "@shared/browser";
-import { defaultFilter } from "cmdk";
-import { ChevronDownIcon, Trash } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-
 import {
   ContextMenu,
   ContextMenuContent,
@@ -20,18 +16,13 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import { SavedUrl } from "@shared/browser";
+import { Check, Download, Trash, Upload } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { useOutletContext } from "react-router";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 
 const SitesPopup = ({ state, error, run }: RouteProps) => {
   const searchRef = useRef<HTMLInputElement>(null);
-  const [search, setSearch] = useState("");
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
-  const searching = search.trim().length > 0;
 
   const groups = state.savedUrls.reduce<Record<string, SavedUrl[]>>(
     (result, entry) => {
@@ -40,67 +31,57 @@ const SitesPopup = ({ state, error, run }: RouteProps) => {
     },
     {},
   );
-  const choose = (entry: SavedUrl) => {
-    void run({ type: "navigate", url: entry.url, saved: entry });
+  const choose = (entry?: SavedUrl) => {
+    void run({ type: "navigate", url: entry?.url ?? "", saved: entry });
   };
+  const activeTab = state.tabs.find((tab) => tab.id === state.activeTabId);
+  const activeSavedTitle = activeTab?.savedTitle;
 
   useEffect(() => {
     searchRef.current?.focus();
   }, []);
   return (
-    <SiteContextMenu>
-      <Command className="h-screen rounded-none border bg-popover text-popover-foreground">
-        <CommandInput
-          ref={searchRef}
-          placeholder="Buscar base..."
-          value={search}
-          onValueChange={setSearch}
-        />
-        <CommandList className="min-h-0 max-h-fit flex-1 overflow-y-auto gap-5 mt-5 rounded-2xl">
-          {Object.entries(groups).map(([group, entries]) => (
-            <Collapsible
-              key={group}
-              render={CommandGroup}
-              className="bg-secondary/40 border border-secondary/50 shadow "
-              open={
-                searching
-                  ? entries.some(
-                      (entry) => defaultFilter(entryValue(entry), search) > 0,
-                    )
-                  : (openGroups[group] ?? false)
-              }
-              onOpenChange={(open) =>
-                setOpenGroups((current) => ({ ...current, [group]: open }))
-              }
-            >
-              <CollapsibleTrigger
-                disabled={searching}
-                className="group/collapsible-trigger flex min-h-9 w-full items-center justify-between rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <span className="text-sm">{group}</span>
-                <ChevronDownIcon
-                  aria-hidden="true"
-                  className="size-4 transition-transform duration-200 group-aria-expanded/collapsible-trigger:rotate-180"
-                />
-              </CollapsibleTrigger>
-              <CollapsibleContent
-                className="h-(--collapsible-panel-height) overflow-hidden transition-[height] duration-200 ease-out data-starting-style:h-0 data-ending-style:h-0 motion-reduce:transition-none"
-                keepMounted
-              >
+    <div className="fixed inset-0 flex h-screen w-screen overflow-hidden bg-transparent">
+      <SiteContextMenu>
+        <Command className="h-full min-h-0 min-w-0 flex-1 rounded-lg border border-[#dedede] bg-[#fafafa] p-0 text-[#171717] shadow-lg dark:border-[#353535] dark:bg-[#171717] dark:text-[#f5f5f5]">
+          <CommandInput
+            ref={searchRef}
+            wrapperClassName="shrink-0 border-b border-[#dedede] p-0 dark:border-[#333333]"
+            inputGroupClassName="h-11 rounded-none border-0 bg-transparent shadow-none dark:bg-transparent"
+            className="h-11 rounded-none bg-transparent px-1 text-sm shadow-none placeholder:text-[#8b8b8b] focus-visible:ring-0 dark:bg-transparent"
+            placeholder="Buscar base..."
+          />
+          <CommandList className="min-h-0 max-h-none flex-1 overflow-y-auto p-1.5">
+            <CommandEmpty className="text-muted-foreground">
+              Nenhuma base encontrada.
+            </CommandEmpty>
+            {Object.entries(groups || {}).map(([group, entries]) => (
+              <CommandGroup key={group} heading={group}>
                 {entries?.map((entry) => (
                   <CommandItem
                     key={`${entry.folder}/${entry.name}`}
-                    value={entryValue(entry)}
+                    value={`${entry.folder} ${entry.name} ${entry.url}`}
+                    className={`h-9 rounded-md [&>svg:last-child]:hidden ${
+                      activeSavedTitle === `${entry.folder} / ${entry.name}`
+                        ? "bg-[#e8e8e8] text-[#171717] dark:bg-[#2a2a2d] dark:text-[#f5f5f5]"
+                        : ""
+                    }`}
                     onSelect={() => choose(entry)}
                   >
                     <SiteIcon key={entry?.url ?? ""} url={entry?.url ?? ""} />
                     <span className="min-w-0 flex-1 truncate">
                       {entry.name}
                     </span>
+                    {activeSavedTitle === `${entry.folder} / ${entry.name}` && (
+                      <Check
+                        className="size-4 text-primary"
+                        aria-label="Ativa"
+                      />
+                    )}
                     <Button
                       variant="ghost"
                       size="icon-xs"
-                      className="shrink-0 hover:text-destructive"
+                      className="shrink-0 opacity-0 hover:text-destructive group-hover/command-item:opacity-100 focus-visible:opacity-100"
                       aria-label={`Remover ambiente ${entry.name}`}
                       onPointerDown={(event) => event.stopPropagation()}
                       onClick={(event) => {
@@ -113,38 +94,39 @@ const SitesPopup = ({ state, error, run }: RouteProps) => {
                     </Button>
                   </CommandItem>
                 ))}
-              </CollapsibleContent>
-            </Collapsible>
-          ))}
-        </CommandList>
-        {error && (
-          <p className="border-t px-3 py-2 text-xs text-destructive">{error}</p>
-        )}
-      </Command>
-    </SiteContextMenu>
+              </CommandGroup>
+            ))}
+          </CommandList>
+          <div className="flex flex-row min-w-screen justify-center items-center shrink-0 border-t p-1.5 ">
+            {error && (
+              <p className="px-3 pb-2 text-xs text-destructive">{error}</p>
+            )}
+          </div>
+        </Command>
+      </SiteContextMenu>
+    </div>
   );
 };
-
-const entryValue = (entry: SavedUrl) =>
-  `${entry.folder} ${entry.name} ${entry.url}`;
 
 const SiteContextMenu = ({ children }: { children: React.ReactNode }) => {
   const { run } = useOutletContext<RouteProps>();
 
   return (
     <ContextMenu>
-      <ContextMenuTrigger>{children}</ContextMenuTrigger>
+      <ContextMenuTrigger className="block h-full w-full">
+        {children}
+      </ContextMenuTrigger>
       <ContextMenuContent className="w-48">
         <ContextMenuGroup>
           <ContextMenuItem
             onClick={() => void run({ type: "import-environments" })}
           >
-            Importar ambientes
+            <Upload /> Importar ambientes
           </ContextMenuItem>
           <ContextMenuItem
             onClick={() => void run({ type: "export-environments" })}
           >
-            Exportar ambientes
+            <Download /> Exportar ambientes
           </ContextMenuItem>
         </ContextMenuGroup>
       </ContextMenuContent>

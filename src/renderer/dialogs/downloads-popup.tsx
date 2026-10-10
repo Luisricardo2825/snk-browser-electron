@@ -168,7 +168,7 @@ export function DownloadsPopup({ state, error, run }: RouteProps) {
                   {active && (
                     <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted">
                       <Progress
-                        value={100}
+                        value={download.status === "paused" ? 0 : 100}
                         className="w-full animate-indeterminate"
                       />
                     </div>

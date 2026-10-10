@@ -16,6 +16,7 @@ import {
   Minimize2,
   Minus,
   Moon,
+  Printer,
   RotateCw,
   Sun,
   X,
@@ -121,6 +122,25 @@ function BrowserTitleBar({
           <Button
             variant="ghost"
             size="icon-sm"
+            aria-label="Web Connection"
+            title={`Web Connection: ${state?.webConnection.status ?? "verificando"}`}
+            className="relative rounded-sm"
+            onClick={(event) => toggle("web-connection", event)}
+          >
+            <Printer />
+            <span
+              className={`absolute right-1 bottom-1 size-2 rounded-full ring-2 ring-background ${
+                state?.webConnection.status === "running"
+                  ? "bg-emerald-500"
+                  : state?.webConnection.status === "error"
+                    ? "bg-destructive"
+                    : "bg-muted-foreground"
+              }`}
+            />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
             className="h-8 w-11 rounded-none"
             aria-label="Minimizar"
             onClick={() => void run({ type: "minimize" })}
@@ -204,30 +224,33 @@ function BrowserTitleBar({
             onFocus={(event) => event.currentTarget.select()}
           />
         </form>
-        <Button
-          variant="outline"
-          size="icon-sm"
-          className="relative overflow-hidden"
-          aria-label="Downloads"
-          title={
-            activeDownloads.length
-              ? `Downloads: ${progress === null ? "em andamento" : `${progress}%`}`
-              : "Downloads"
-          }
-          onClick={(event) => toggle("downloads", event)}
-        >
-          <Download />
-          {activeDownloads.length > 0 && (
-            <span
-              className={`absolute inset-x-0 bottom-0 h-1 bg-primary ${progress === null ? "animate-pulse" : ""}`}
-              style={progress === null ? undefined : { width: `${progress}%` }}
-            />
-          )}
-        </Button>
+
         <ButtonGroup aria-label="Ações do navegador">
           <Button
             variant="outline"
-            size="icon-sm"
+            size="sm"
+            className="relative"
+            aria-label="Downloads"
+            title={
+              activeDownloads.length
+                ? `Downloads: ${progress === null ? "em andamento" : `${progress}%`}`
+                : "Downloads"
+            }
+            onClick={(event) => toggle("downloads", event)}
+          >
+            <Download />
+            {activeDownloads.length > 0 && (
+              <span
+                className={`absolute inset-x-0 bottom-0 h-1 bg-primary ${progress === null ? "animate-pulse" : ""}`}
+                style={
+                  progress === null ? undefined : { width: `${progress}%` }
+                }
+              />
+            )}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
             aria-label="Tema"
             title="Tema"
             onClick={(event) => toggle("theme", event)}
@@ -236,12 +259,13 @@ function BrowserTitleBar({
             <Moon className="hidden dark:block" />
           </Button>
           <Button
-            variant="outline"
-            size="icon-sm"
+            variant="default"
+            size="sm"
             aria-label="Salvar URL"
             title="Salvar URL"
             disabled={!tab?.url}
             onClick={(event) => toggle("save", event)}
+            className={"rounded-md border-primary/60"}
           >
             <BookmarkPlus />
           </Button>

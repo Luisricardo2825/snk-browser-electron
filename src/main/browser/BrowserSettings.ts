@@ -28,6 +28,10 @@ interface SettingsFile {
   window?: WindowState;
   session?: TabSession;
   downloadDirectory?: string;
+  webConnectionAutoStart?: boolean;
+  webConnectionControlExternal?: boolean;
+  webConnectionExecutablePath?: string;
+  webConnectionPort?: number;
 }
 
 const settingsPath = () =>
@@ -66,6 +70,37 @@ export default class BrowserSettings {
 
   get downloadDirectoryManaged(): boolean {
     return Boolean(process.env.SNK_BROWSER_DOWNLOAD_DIR);
+  }
+
+  get webConnectionAutoStart(): boolean {
+    return this.data.webConnectionAutoStart ?? false;
+  }
+
+  get webConnectionControlExternal(): boolean {
+    return this.data.webConnectionControlExternal ?? true;
+  }
+
+  get webConnectionExecutablePath(): string {
+    return this.data.webConnectionExecutablePath ?? "";
+  }
+
+  get webConnectionPort(): number {
+    return this.data.webConnectionPort ?? 9098;
+  }
+
+  setWebConnection(settings: {
+    autoStart: boolean;
+    controlExternal: boolean;
+    executablePath: string;
+    port: number;
+  }): void {
+    this.writeSettings({
+      ...this.data,
+      webConnectionAutoStart: settings.autoStart,
+      webConnectionControlExternal: settings.controlExternal,
+      webConnectionExecutablePath: settings.executablePath,
+      webConnectionPort: settings.port,
+    });
   }
 
   setWindowState(window: WindowState): void {
@@ -150,6 +185,25 @@ export default class BrowserSettings {
         path.isAbsolute(value.downloadDirectory)
           ? value.downloadDirectory
           : undefined,
+      webConnectionAutoStart:
+        typeof value.webConnectionAutoStart === "boolean"
+          ? value.webConnectionAutoStart
+          : false,
+      webConnectionControlExternal:
+        typeof value.webConnectionControlExternal === "boolean"
+          ? value.webConnectionControlExternal
+          : true,
+      webConnectionExecutablePath:
+        typeof value.webConnectionExecutablePath === "string" &&
+        path.isAbsolute(value.webConnectionExecutablePath)
+          ? value.webConnectionExecutablePath
+          : "",
+      webConnectionPort:
+        Number.isInteger(value.webConnectionPort) &&
+        Number(value.webConnectionPort) >= 1 &&
+        Number(value.webConnectionPort) <= 65535
+          ? Number(value.webConnectionPort)
+          : 9098,
     };
   }
 
