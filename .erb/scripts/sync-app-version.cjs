@@ -6,7 +6,9 @@ const appPackagePath = path.resolve(
   __dirname,
   "../../release/app/package.json",
 );
-const rootVersion = JSON.parse(fs.readFileSync(rootPackagePath, "utf8")).version;
+const rootVersion = JSON.parse(
+  fs.readFileSync(rootPackagePath, "utf8"),
+).version;
 const appPackage = JSON.parse(fs.readFileSync(appPackagePath, "utf8"));
 
 if (!rootVersion) {

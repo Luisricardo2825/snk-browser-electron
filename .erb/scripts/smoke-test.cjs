@@ -413,8 +413,7 @@ async function main() {
     loaded: true,
   });
   const resource = await siteCommand("Runtime.evaluate", {
-    expression:
-      `fetch("snk-ruffle://assets/ruffle/${ruffleWasm}").then((response) => response.ok && response.headers.get("content-type") === "application/wasm")`,
+    expression: `fetch("snk-ruffle://assets/ruffle/${ruffleWasm}").then((response) => response.ok && response.headers.get("content-type") === "application/wasm")`,
     awaitPromise: true,
     returnByValue: true,
   });
