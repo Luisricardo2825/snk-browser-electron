@@ -4,8 +4,14 @@
   "version": "1.0.0",
   "content_scripts": [
     {
-      "matches": ["http://*/*", "https://*/*"],
-      "js": ["config.js", "ruffle.js"],
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "config.js",
+        "./ruffle/ruffle.js"
+      ],
       "run_at": "document_start",
       "all_frames": true,
       "world": "MAIN"

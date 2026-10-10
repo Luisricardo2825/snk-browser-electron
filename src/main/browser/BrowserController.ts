@@ -1,5 +1,5 @@
 import { BrowserWindow, dialog, nativeTheme } from "electron";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import type {
   BrowserCommand,
   BrowserSnapshot,
@@ -10,11 +10,13 @@ import BrowserDownloads from "./BrowserDownloads";
 import BrowserPopups from "./BrowserPopups";
 import BrowserSettings from "./BrowserSettings";
 import BrowserTabs from "./BrowserTabs";
+import WebConnection from "./WebConnection";
 
 export default class BrowserController {
   private readonly downloads: BrowserDownloads;
   private readonly tabs: BrowserTabs;
   private readonly popups: BrowserPopups;
+  private readonly webConnection: WebConnection;
   private revision = 0;
   private restoring = true;
 
@@ -41,6 +43,8 @@ export default class BrowserController {
     this.popups = new BrowserPopups(window, this.settings, () =>
       this.publish(),
     );
+    this.webConnection = new WebConnection(this.settings, () => this.publish());
+    this.webConnection.initialize();
     window.webContents.on("before-mouse-event", (_event, mouse) => {
       if (mouse.type === "mouseUp") this.popups.closeOnParentMouseUp();
     });
@@ -55,7 +59,10 @@ export default class BrowserController {
     window.on("unmaximize", () => this.publish());
     window.on("closed", () => {
       this.downloads.dispose();
-      this.popups.closePopup();
+      this.popups.closePopup(false);
+      void this.webConnection.stop().catch((error: unknown) => {
+        console.error("Falha ao encerrar o Web Connection:", error);
+      });
     });
   }
 
@@ -63,6 +70,11 @@ export default class BrowserController {
     return (
       sender === this.window.webContents || sender === this.popups.webContents
     );
+  }
+
+  resizePopup(sender: Electron.WebContents, height: number): void {
+    if (sender === this.popups.webContents)
+      this.popups.resizeWebConnection(height);
   }
 
   state(): BrowserState {
@@ -75,6 +87,7 @@ export default class BrowserController {
       savedUrls: this.settings.savedUrls.map((entry) => ({ ...entry })),
       theme: this.settings.theme,
       popup: this.popups.kind,
+      webConnection: this.webConnection.snapshot(),
     };
   }
 
@@ -83,7 +96,8 @@ export default class BrowserController {
   }
 
   private publish(): void {
-    if (this.window.isDestroyed()) return;
+    if (this.window.isDestroyed() || this.window.webContents.isDestroyed())
+      return;
     this.revision += 1;
     const next = this.snapshot();
     this.window.webContents.send("browser:state", next);
@@ -100,6 +114,59 @@ export default class BrowserController {
       case "clear-downloads":
         this.downloads.clear();
         break;
+      case "set-web-connection":
+        await this.webConnection.configure(
+          command.autoStart,
+          command.controlExternal,
+          command.executablePath,
+          command.port,
+        );
+        break;
+      case "start-web-connection":
+        await this.webConnection.start();
+        break;
+      case "stop-web-connection":
+        await this.webConnection.stop();
+        break;
+      case "check-web-connection":
+        await this.webConnection.check();
+        break;
+      case "select-web-connection-executable": {
+        this.popups.suspendBlurClose(true);
+        try {
+          const result = await dialog.showOpenDialog(this.window, {
+            title: "Selecionar Web Connection",
+            properties: ["openFile"],
+            filters: [{ name: "Aplicativo", extensions: ["exe"] }],
+          });
+          if (!result.canceled && result.filePaths[0]) {
+            const executablePath = result.filePaths[0];
+            const launcherConfigPath = executablePath.replace(
+              /\.exe$/i,
+              ".l4j.ini",
+            );
+            let port = this.settings.webConnectionPort;
+            try {
+              const launcherConfig = readFileSync(launcherConfigPath, "utf8");
+              const configuredPort = launcherConfig.match(
+                /(?:^|\s)-Dporta=(\d+)(?=\s|$)/m,
+              );
+              if (configuredPort) port = Number(configuredPort[1]);
+            } catch {
+              // The launcher sidecar is optional; retain the saved port if missing.
+            }
+            await this.webConnection.configure(
+              this.settings.webConnectionAutoStart,
+              this.settings.webConnectionControlExternal,
+              executablePath,
+              port,
+            );
+          }
+        } finally {
+          this.popups.suspendBlurClose(false);
+        }
+        break;
+      }
       case "select-download-directory": {
         if (this.settings.downloadDirectoryManaged) break;
         const result = await dialog.showOpenDialog(this.window, {
@@ -169,36 +236,61 @@ export default class BrowserController {
         break;
       }
       case "import-environments": {
-        const result = await dialog.showOpenDialog(this.window, {
-          title: "Importar bases salvas",
-          properties: ["openFile"],
-          filters: [{ name: "JSON", extensions: ["json"] }],
-        });
-        if (result.canceled || !result.filePaths[0]) break;
-        const input: unknown = JSON.parse(
-          readFileSync(result.filePaths[0], "utf8"),
-        );
-        const imported = importedSavedUrls(input);
-        const next = [...this.settings.savedUrls];
-        for (const item of imported) {
-          const entry = {
-            folder: item.folder.trim(),
-            name: item.name.trim(),
-            url: this.settings.addressUrl(item.url),
-          };
-          if (!entry.folder || !entry.name)
-            throw new Error("Base sem pasta ou apelido.");
-          if (
-            !next.some(
-              (saved) =>
-                saved.folder === entry.folder && saved.name === entry.name,
+        this.popups.suspendBlurClose(true);
+        try {
+          const result = await dialog.showOpenDialog(this.window, {
+            title: "Importar bases salvas",
+            properties: ["openFile"],
+            filters: [{ name: "JSON", extensions: ["json"] }],
+          });
+          if (result.canceled || !result.filePaths[0]) break;
+          const input: unknown = JSON.parse(
+            readFileSync(result.filePaths[0], "utf8"),
+          );
+          const imported = importedSavedUrls(input);
+          const next = [...this.settings.savedUrls];
+          for (const item of imported) {
+            const entry = {
+              folder: item.folder.trim(),
+              name: item.name.trim(),
+              url: this.settings.addressUrl(item.url),
+            };
+            if (!entry.folder || !entry.name)
+              throw new Error("Base sem pasta ou apelido.");
+            if (
+              !next.some(
+                (saved) =>
+                  saved.folder === entry.folder && saved.name === entry.name,
+              )
             )
-          )
-            next.push(entry);
+              next.push(entry);
+          }
+          this.settings.saveUrls(next);
+          this.tabs.refreshSavedTitles(next);
+          this.publish();
+        } finally {
+          this.popups.suspendBlurClose(false);
         }
-        this.settings.saveUrls(next);
-        this.tabs.refreshSavedTitles(next);
-        this.publish();
+        break;
+      }
+      case "export-environments": {
+        this.popups.suspendBlurClose(true);
+        try {
+          const result = await dialog.showSaveDialog(this.window, {
+            title: "Exportar bases salvas",
+            defaultPath: "ambientes-snk-browser.json",
+            filters: [{ name: "JSON", extensions: ["json"] }],
+          });
+          if (!result.canceled && result.filePath) {
+            writeFileSync(
+              result.filePath,
+              `${JSON.stringify(this.settings.savedUrls, null, 2)}\n`,
+              "utf8",
+            );
+          }
+        } finally {
+          this.popups.suspendBlurClose(false);
+        }
         break;
       }
       case "set-theme":
@@ -210,7 +302,11 @@ export default class BrowserController {
         this.popups.closePopup();
         break;
       case "toggle-popup":
-        if (!["sites", "theme", "save", "downloads"].includes(command.popup))
+        if (
+          !["sites", "theme", "save", "downloads", "web-connection"].includes(
+            command.popup,
+          )
+        )
           throw new Error("Popup inválido.");
         this.popups.togglePopup(command.popup, command.anchor);
         break;

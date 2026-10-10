@@ -1,7 +1,8 @@
 export const CHROME_HEIGHT = 76;
 
 export type Theme = "light" | "dark";
-export type PopupKind = "sites" | "theme" | "save" | "downloads";
+export type PopupKind =
+  "sites" | "theme" | "save" | "downloads" | "web-connection";
 export interface BrowserDownload {
   id: string;
   name: string;
@@ -43,6 +44,15 @@ export interface BrowserState {
   savedUrls: SavedUrl[];
   theme: Theme;
   popup: PopupKind | null;
+  webConnection: WebConnectionState;
+}
+export interface WebConnectionState {
+  autoStart: boolean;
+  controlExternal: boolean;
+  executablePath: string;
+  port: number;
+  status: "checking" | "running" | "stopped" | "error";
+  error: string;
 }
 
 export interface BrowserSnapshot {
@@ -57,6 +67,17 @@ export type BrowserCommand =
       action: "pause" | "resume" | "cancel" | "show";
     }
   | { type: "clear-downloads" }
+  | {
+      type: "set-web-connection";
+      autoStart: boolean;
+      controlExternal: boolean;
+      executablePath: string;
+      port: number;
+    }
+  | { type: "start-web-connection" }
+  | { type: "stop-web-connection" }
+  | { type: "check-web-connection" }
+  | { type: "select-web-connection-executable" }
   | { type: "select-download-directory" | "reset-download-directory" }
   | { type: "new-tab"; url?: string }
   | { type: "navigate"; url: string; saved?: SavedUrl }
@@ -67,6 +88,7 @@ export type BrowserCommand =
   | { type: "save-environment"; entry: SavedUrl }
   | { type: "remove-environment"; entry: SavedUrl }
   | { type: "import-environments" }
+  | { type: "export-environments" }
   | { type: "set-theme"; theme: Theme }
   | { type: "toggle-popup"; popup: PopupKind; anchor?: PopupAnchor }
   | { type: "close-popup" }

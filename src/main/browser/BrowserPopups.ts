@@ -10,6 +10,7 @@ export default class BrowserPopups {
   private popupAnchor: PopupAnchor | undefined;
   private popupSize: [number, number] = [0, 0];
   private popupBlurTimer: ReturnType<typeof setTimeout> | undefined;
+  private keepPopupOpen = false;
 
   constructor(
     private readonly window: BrowserWindow,
@@ -43,8 +44,12 @@ export default class BrowserPopups {
       Math.max(1, parent.height - margin * 2),
     );
     const [currentWidth, currentHeight] = popup.getSize();
-    if (currentWidth !== width || currentHeight !== height)
+    if (currentWidth !== width || currentHeight !== height) {
+      // Windows locks non-resizable windows to their current minimum size.
+      popup.setResizable(true);
       popup.setSize(width, height);
+      popup.setResizable(false);
+    }
     const left = parent.x + margin;
     const top = parent.y + margin;
     const right = parent.x + parent.width - margin;
@@ -63,7 +68,13 @@ export default class BrowserPopups {
     popup.setPosition(Math.round(x), Math.round(y));
   }
 
-  closePopup(): void {
+  resizeWebConnection(height: number): void {
+    if (!Number.isFinite(height)) return;
+    this.popupSize[1] = Math.max(1, Math.ceil(height));
+    this.positionPopup();
+  }
+
+  closePopup(notify = true): void {
     if (this.popupBlurTimer) clearTimeout(this.popupBlurTimer);
     this.popupBlurTimer = undefined;
     const popup = this.popupWindow;
@@ -72,16 +83,33 @@ export default class BrowserPopups {
     this.popupAnchor = undefined;
     this.popupSize = [0, 0];
     if (popup && !popup.isDestroyed()) popup.close();
-    if (!this.window.isDestroyed()) this.onChange();
+    if (
+      notify &&
+      !this.window.isDestroyed() &&
+      !this.window.webContents.isDestroyed()
+    )
+      this.onChange();
   }
 
   closeOnParentMouseUp(): void {
+    if (this.keepPopupOpen) return;
     const popup = this.popupWindow;
     if (!popup) return;
     if (this.popupBlurTimer) clearTimeout(this.popupBlurTimer);
     this.popupBlurTimer = setTimeout(() => {
       if (this.popupWindow === popup) this.closePopup();
     }, 120);
+  }
+
+  suspendBlurClose(suspended: boolean): void {
+    this.keepPopupOpen = suspended;
+    if (suspended && this.popupBlurTimer) {
+      clearTimeout(this.popupBlurTimer);
+      this.popupBlurTimer = undefined;
+    }
+    if (!suspended && this.popupWindow && !this.popupWindow.isDestroyed()) {
+      this.popupWindow.focus();
+    }
   }
 
   togglePopup(kind: PopupKind, anchor?: PopupAnchor): void {
@@ -115,6 +143,7 @@ export default class BrowserPopups {
     this.popupKind = kind;
     this.popupAnchor = anchor;
     popup.on("blur", () => {
+      if (this.keepPopupOpen) return;
       this.popupBlurTimer = setTimeout(() => {
         if (this.popupWindow === popup && !popup.isFocused()) this.closePopup();
       }, 120);
@@ -144,13 +173,15 @@ export default class BrowserPopups {
     function getPopupDimensions(): [number, number] {
       switch (kind) {
         case "sites":
-          return [340, 420];
+          return [340, 300];
         case "theme":
           return [190, 144];
         case "downloads":
           return [300, 300];
         case "save":
           return [480, 330];
+        case "web-connection":
+          return [360, 300];
       }
     }
   }

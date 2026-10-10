@@ -405,7 +405,7 @@ async function main() {
   });
   const resource = await siteCommand("Runtime.evaluate", {
     expression:
-      'fetch("snk-ruffle://assets/ruffle.js").then((response) => response.ok)',
+      'fetch("snk-ruffle://assets/ruffle/72a20ef1c0b8ceb37720.wasm").then((response) => response.ok && response.headers.get("content-type") === "application/wasm")',
     awaitPromise: true,
     returnByValue: true,
   });
@@ -501,6 +501,9 @@ async function main() {
     "popup toggle close",
   );
   await evaluate(
+    'window.electron.browser.command({type:"save-environment",entry:{folder:"Outro",name:"Sem resultado",url:"https://example.org/"}})',
+  );
+  await evaluate(
     'window.electron.browser.command({type:"toggle-popup",popup:"sites",anchor:{x:10,y:10,width:20,height:20}})',
   );
   const sitesTarget = await waitFor(async () => {
@@ -513,10 +516,56 @@ async function main() {
     () =>
       evaluateTarget(
         sitesTarget,
-        'Boolean(document.body?.innerText.includes("Teste") && document.body?.innerText.includes("Base") && document.body?.innerText.includes("Importar bases"))',
+        'Boolean(document.body?.innerText.includes("Teste") && document.body?.innerText.includes("Outro") && !document.body?.innerText.includes("Tela inicial"))',
       ),
     "shadcn saved sites picker",
     10_000,
+  );
+  await evaluateTarget(
+    sitesTarget,
+    `(async () => {
+      const input = document.querySelector('[data-slot="command-input"]');
+      const setValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
+      setValue.call(input, "Base");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    })()`,
+  );
+  await waitFor(
+    () =>
+      evaluateTarget(
+        sitesTarget,
+        'Boolean(document.body.innerText.includes("Base") && !document.body.innerText.includes("Sem resultado"))',
+      ),
+    "saved sites search filters results",
+  );
+  await evaluateTarget(
+    sitesTarget,
+    `(async () => {
+      const input = document.querySelector('[data-slot="command-input"]');
+      const setValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
+      setValue.call(input, "");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    })()`,
+  );
+  await waitFor(
+    () =>
+      evaluateTarget(
+        sitesTarget,
+        'Boolean(document.body.innerText.includes("Base") && document.body.innerText.includes("Sem resultado"))',
+      ),
+    "saved sites search restores all results",
+  );
+  await evaluateTarget(
+    sitesTarget,
+    'document.querySelector(\'[data-slot="context-menu-trigger"]\').dispatchEvent(new MouseEvent("contextmenu", {bubbles:true,cancelable:true,button:2,clientX:20,clientY:20}))',
+  );
+  await waitFor(
+    () =>
+      evaluateTarget(
+        sitesTarget,
+        'Boolean(document.body.innerText.includes("Importar ambientes") && document.body.innerText.includes("Exportar ambientes"))',
+      ),
+    "saved sites context menu",
   );
   await evaluate(
     'window.electron.browser.command({type:"toggle-popup",popup:"sites"})',

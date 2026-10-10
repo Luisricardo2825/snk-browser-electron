@@ -14,6 +14,14 @@ const state: BrowserState = {
   savedUrls: [],
   theme: "light",
   popup: null,
+  webConnection: {
+    autoStart: false,
+    controlExternal: true,
+    executablePath: "",
+    port: 9098,
+    status: "stopped",
+    error: "",
+  },
 };
 
 test("evento novo prevalece sobre resposta antiga de getState", async () => {
@@ -28,6 +36,7 @@ test("evento novo prevalece sobre resposta antiga de getState", async () => {
           }),
       ),
       command: jest.fn().mockResolvedValue(undefined),
+      resizePopup: jest.fn().mockResolvedValue(undefined),
       onState: jest.fn().mockImplementation((listener) => {
         emit = listener;
         return () => {};

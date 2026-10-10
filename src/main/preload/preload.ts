@@ -7,6 +7,8 @@ const electronHandler = {
       ipcRenderer.invoke("browser:get-state"),
     command: (command: BrowserCommand): Promise<void> =>
       ipcRenderer.invoke("browser:command", command),
+    resizePopup: (height: number): Promise<void> =>
+      ipcRenderer.invoke("browser:resize-popup", height),
     onState: (listener: (snapshot: BrowserSnapshot) => void): (() => void) => {
       const subscription = (
         _event: IpcRendererEvent,

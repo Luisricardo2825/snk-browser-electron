@@ -12,6 +12,14 @@ const emptyState: BrowserState = {
   maximized: false,
   popup: null,
   savedUrls: [],
+  webConnection: {
+    autoStart: false,
+    controlExternal: true,
+    executablePath: "",
+    port: 9098,
+    status: "checking",
+    error: "",
+  },
   tabs: [],
 };
 

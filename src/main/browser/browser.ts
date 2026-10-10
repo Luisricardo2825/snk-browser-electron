@@ -20,6 +20,9 @@ ipcMain.handle("browser:get-state", (event) =>
 ipcMain.handle("browser:command", (event, command: BrowserCommand) =>
   authorized(event.sender).command(command),
 );
+ipcMain.handle("browser:resize-popup", (event, height: number) => {
+  authorized(event.sender).resizePopup(event.sender, height);
+});
 
 export function attachBrowserWindow(
   window: BrowserWindow,
