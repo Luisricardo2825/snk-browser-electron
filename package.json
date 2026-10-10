@@ -1,6 +1,6 @@
 {
   "name": "snk-browser-electron",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Navegador de ambientes Sankhya em Electron",
   "keywords": [
     "electron",
@@ -15,13 +15,13 @@
   "license": "MIT",
   "main": "./release/app/dist/main/main.js",
   "scripts": {
-    "build": "electron-vite build",
+    "build": "node .erb/scripts/sync-app-version.cjs && electron-vite build",
     "postinstall": "npm --prefix .erb/tooling ci",
     "lint": "cross-env NODE_ENV=development eslint . --ext .js,.jsx,.ts,.tsx,.cjs",
     "lint:fix": "cross-env NODE_ENV=development eslint . --ext .js,.jsx,.ts,.tsx,.cjs --fix",
-    "package": "electron-vite build && electron-builder build --publish never",
+    "package": "node .erb/scripts/sync-app-version.cjs && electron-vite build && electron-builder build --publish never",
     "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir release/app",
-    "start": "electron-vite dev --watch",
+    "start": "node .erb/scripts/sync-app-version.cjs && electron-vite dev --watch",
     "test": "jest",
     "test:smoke": "node .erb/scripts/smoke-test.cjs",
     "preview": "electron-vite preview"
