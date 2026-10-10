@@ -57,6 +57,9 @@ function BrowserTitleBar({
     (total, item) => total + item.totalBytes,
     0,
   );
+  const anyProgressing = activeDownloads.some(
+    (item) => item.status === "progressing",
+  );
   const progress =
     totalBytes > 0 && activeDownloads.every((item) => item.totalBytes > 0)
       ? Math.min(
@@ -210,10 +213,10 @@ function BrowserTitleBar({
           <SiteIcon key={tab?.url ?? ""} url={tab?.url ?? ""} />
           <Input
             ref={addressRef}
-            className="h-8 border-0 bg-transparent shadow-none focus-visible:ring-0"
+            className="h-8 border-0 bg-transparent shadow-none focus-visible:ring-0 focus:placeholder-transparent"
             aria-label="URL do Sankhya"
             value={address}
-            placeholder="https://empresa.sankhyacloud.com.br/mge/"
+            placeholder="Pesquise ou digite a URL"
             spellCheck={false}
             onChange={(event) =>
               setDraft({
@@ -224,28 +227,37 @@ function BrowserTitleBar({
             onFocus={(event) => event.currentTarget.select()}
           />
         </form>
-
         <ButtonGroup aria-label="Ações do navegador">
           <Button
             variant="outline"
-            size="sm"
-            className="relative"
+            size="icon-sm"
+            className="relative overflow-hidden"
             aria-label="Downloads"
             title={
-              activeDownloads.length
-                ? `Downloads: ${progress === null ? "em andamento" : `${progress}%`}`
-                : "Downloads"
+              state?.hasUnseenDownload
+                ? "Há downloads concluídos não vistos"
+                : activeDownloads.length
+                  ? `Downloads: ${progress === null ? "em andamento" : `${progress}%`}`
+                  : "Downloads"
             }
             onClick={(event) => toggle("downloads", event)}
           >
-            <Download />
-            {activeDownloads.length > 0 && (
+            <Download
+              data-active={state?.hasUnseenDownload}
+              // className={" data-active:text-emerald-400"}
+            />
+            <span className="download-fill" aria-hidden="true">
               <span
-                className={`absolute inset-x-0 bottom-0 h-1 bg-primary ${progress === null ? "animate-pulse" : ""}`}
+                data-progressing={anyProgressing}
+                data-active={activeDownloads.length > 0}
+                className={`wave not-data-active:bg-transparent not-data-active:translate-y-5 ${anyProgressing ? "bg-green-500/50" : "bg-gray-500/70"}`}
                 style={
-                  progress === null ? undefined : { width: `${progress}%` }
+                  progress === null ? undefined : { height: `${progress}%` }
                 }
               />
+            </span>
+            {state?.hasUnseenDownload && (
+              <span className="absolute right-1 bottom-1 size-2 rounded-full bg-emerald-500 ring-1 ring-background animate-pulse" />
             )}
           </Button>
           <Button
@@ -259,13 +271,12 @@ function BrowserTitleBar({
             <Moon className="hidden dark:block" />
           </Button>
           <Button
-            variant="default"
+            variant="outline"
             size="sm"
             aria-label="Salvar URL"
             title="Salvar URL"
             disabled={!tab?.url}
             onClick={(event) => toggle("save", event)}
-            className={"rounded-md border-primary/60"}
           >
             <BookmarkPlus />
           </Button>

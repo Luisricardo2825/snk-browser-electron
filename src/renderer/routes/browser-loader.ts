@@ -9,6 +9,7 @@ const emptyState: BrowserState = {
   downloads: [],
   downloadDirectory: "",
   downloadDirectoryManaged: false,
+  hasUnseenDownload: false,
   maximized: false,
   popup: null,
   savedUrls: [],

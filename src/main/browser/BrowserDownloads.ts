@@ -35,6 +35,25 @@ export default class BrowserDownloads {
     return this.downloads.map((download) => ({ ...download }));
   }
 
+  hasUnseenCompleted(): boolean {
+    return this.downloads.some(
+      (download) => download.status === "completed" && download.seen === false,
+    );
+  }
+
+  markCompletedSeen(): void {
+    let changed = false;
+    for (const download of this.downloads) {
+      if (download.status === "completed" && download.seen === false) {
+        download.seen = true;
+        changed = true;
+      }
+    }
+    if (!changed) return;
+    this.saveDownloads();
+    this.onChange();
+  }
+
   async saveAs(
     window: BrowserWindow,
     contents: Electron.WebContents,
@@ -88,7 +107,10 @@ export default class BrowserDownloads {
     this.downloads.splice(
       0,
       this.downloads.length,
-      ...this.downloads.filter((entry) => this.downloadItems.has(entry.id)),
+      ...this.downloads.filter(
+        (entry) =>
+          this.downloadItems.has(entry.id) && entry.status !== "interrupted",
+      ),
     );
     this.saveDownloads();
     this.onChange();
@@ -143,16 +165,16 @@ export default class BrowserDownloads {
       this.onChange();
     };
     item.on("updated", (_updatedEvent, state) => {
-      download.status =
-        state === "interrupted"
+      download.status = item.isPaused()
+        ? "paused"
+        : state === "interrupted" && !item.canResume()
           ? "interrupted"
-          : item.isPaused()
-            ? "paused"
-            : "progressing";
+          : "progressing";
       update();
     });
     item.once("done", (_doneEvent, state) => {
       download.status = state;
+      download.seen = state !== "completed";
       this.downloadItems.delete(download.id);
       update();
       this.saveDownloads();

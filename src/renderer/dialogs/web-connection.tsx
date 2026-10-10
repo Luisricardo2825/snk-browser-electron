@@ -106,7 +106,7 @@ export default function WebConnectionPopup({ state, run }: RouteProps) {
           <div>
             <div className="text-sm font-medium">Iniciar com o navegador</div>
             <div className="text-xs text-muted-foreground">
-              Abre o serviço junto com o SNK Browser
+              Inicia o serviço junto com o SNK Browser
             </div>
           </div>
           <Switch

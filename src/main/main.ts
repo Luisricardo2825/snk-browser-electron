@@ -19,6 +19,10 @@ import { resolveHtmlPath } from "./lib/util";
 let mainWindow: BrowserWindow | null = null;
 
 app.setName("snk-browser");
+app.userAgentFallback = app.userAgentFallback.replace(
+  /\sElectron\/[^\s]+/gi,
+  "",
+);
 registerRuffleScheme();
 if (process.env.SNK_BROWSER_DATA_DIR) {
   app.setPath("userData", process.env.SNK_BROWSER_DATA_DIR);

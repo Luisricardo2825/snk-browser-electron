@@ -30,6 +30,9 @@ export default class BrowserController {
       this.settings,
       () => this.publish(),
     );
+    this.popups = new BrowserPopups(window, this.settings, () =>
+      this.publish(),
+    );
     this.tabs = new BrowserTabs(
       window,
       this.settings,
@@ -39,9 +42,6 @@ export default class BrowserController {
         this.publish();
       },
       () => this.popups.closeOnParentMouseUp(),
-    );
-    this.popups = new BrowserPopups(window, this.settings, () =>
-      this.publish(),
     );
     this.webConnection = new WebConnection(this.settings, () => this.publish());
     this.webConnection.initialize();
@@ -82,6 +82,7 @@ export default class BrowserController {
       downloads: this.downloads.snapshot(),
       downloadDirectory: this.settings.downloadDirectory,
       downloadDirectoryManaged: this.settings.downloadDirectoryManaged,
+      hasUnseenDownload: this.downloads.hasUnseenCompleted(),
       ...this.tabs.snapshot(),
       maximized: this.window.isMaximized(),
       savedUrls: this.settings.savedUrls.map((entry) => ({ ...entry })),
@@ -309,6 +310,8 @@ export default class BrowserController {
         )
           throw new Error("Popup inválido.");
         this.popups.togglePopup(command.popup, command.anchor);
+        if (command.popup === "downloads" && this.popups.kind === "downloads")
+          this.downloads.markCompletedSeen();
         break;
       case "close-popup":
         this.popups.closePopup();

@@ -2,9 +2,10 @@ import { FolderOpen, Pause, Play, Trash2, X } from "lucide-react";
 import { Fragment, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "../components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Progress, ProgressTrack } from "@/components/ui/progress";
 import { RouteProps } from "@/@types/popup";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 function bytes(value: number): string {
   if (value < 1024) return `${value} B`;
@@ -75,7 +76,7 @@ export function DownloadsPopup({ state, error, run }: RouteProps) {
         )}
       </header>
       <Separator />
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <ScrollArea className="min-h-0 flex-1 overflow-y-auto">
         {state.downloads.length === 0 ? (
           <p className="px-3 py-6 text-center text-sm text-muted-foreground">
             Nenhum download.
@@ -170,7 +171,11 @@ export function DownloadsPopup({ state, error, run }: RouteProps) {
                       <Progress
                         value={download.status === "paused" ? 0 : 100}
                         className="w-full animate-indeterminate"
-                      />
+                      >
+                        <ProgressTrack
+                          className={`w-full bg-red-400 ${download.status === "paused" ? "bg-gray-500/70" : "bg-green-500/50"}`}
+                        />
+                      </Progress>
                     </div>
                   )}
                 </div>
@@ -178,7 +183,7 @@ export function DownloadsPopup({ state, error, run }: RouteProps) {
             );
           })
         )}
-      </div>
+      </ScrollArea>
       <footer className="shrink-0 border-t px-3 py-2 text-xs">
         <p
           className="truncate text-muted-foreground"

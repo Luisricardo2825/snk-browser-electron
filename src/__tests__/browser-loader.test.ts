@@ -6,6 +6,7 @@ const state: BrowserState = {
   downloads: [],
   downloadDirectory: "",
   downloadDirectoryManaged: false,
+  hasUnseenDownload: false,
   tabs: [],
   activeTabId: "",
   canGoBack: false,

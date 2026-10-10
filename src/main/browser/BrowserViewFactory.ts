@@ -1,8 +1,33 @@
-import { BrowserWindow, WebContentsView } from "electron";
+import { BrowserWindow, Menu, WebContentsView } from "electron";
 import contextMenu from "electron-context-menu";
 import type { BrowserTab } from "@shared/browser";
 import BrowserDownloads from "./BrowserDownloads";
 import BrowserSettings from "./BrowserSettings";
+
+const allowedUrls = [
+  "visualizadorArquivos.mge",
+  "uploadArquivoServlet.mge",
+  "uploadAnexo.mge",
+  "sessionUpload.mge",
+  "sessionUpload.timimob",
+  "download.mge",
+  "cubeViewer.jsp",
+  "skwajuda.launcher",
+  "/wpm?wpmsession",
+  "webConnectionInfo",
+  "webConnectionSolucoes",
+  "mgeos/imprimirOs",
+  "mgeos/OSPortal.mgeos",
+  "perfilContato.jsp?",
+  "http://www.buscacep.correios.com.br",
+  "/m7serv/visualizadorArquivos",
+  "oAuth.mge",
+  "genericOAuth.mge",
+];
+
+function removeElectronUserAgent(userAgent: string) {
+  return userAgent.replace(/\sElectron\/[^\s]+/g, "");
+}
 
 export default class BrowserViewFactory {
   constructor(
@@ -29,9 +54,7 @@ export default class BrowserViewFactory {
     contents.on("before-mouse-event", (_event, mouse) => {
       if (mouse.type === "mouseUp") this.onParentMouseUp();
     });
-    contents.setUserAgent(
-      contents.getUserAgent().replace(/\sElectron\/[^\s]+/i, ""),
-    );
+    contents.setUserAgent(removeElectronUserAgent(contents.getUserAgent()));
     const saveAs = (url: string) =>
       this.downloads.saveAs(this.window, contents, url);
     contextMenu({
@@ -114,7 +137,9 @@ export default class BrowserViewFactory {
         const target = this.settings.addressUrl(url);
         if (
           /\b(?:width|height)\s*=/.test(features) ||
-          /\/sessionUpload\.mge$/i.test(new URL(target).pathname)
+          allowedUrls.some((allowed) =>
+            new URL(target).pathname.includes(allowed),
+          )
         ) {
           const width = Number(
             features.match(/\bwidth\s*=\s*(\d+)/)?.[1] ?? 600,
@@ -127,7 +152,7 @@ export default class BrowserViewFactory {
           return {
             action: "allow",
             createWindow(options) {
-              return new BrowserWindow({
+              const browser = new BrowserWindow({
                 ...options,
                 parent,
                 width: Math.max(300, width),
@@ -138,9 +163,35 @@ export default class BrowserViewFactory {
                   contextIsolation: true,
                   nodeIntegration: false,
                   sandbox: true,
-                  devTools: false,
+                  devTools: true,
                 },
-              }).webContents;
+              });
+
+              const popupContents = browser.webContents;
+              popupContents.setUserAgent(
+                removeElectronUserAgent(contents.getUserAgent()),
+              );
+              popupContents.on("before-input-event", (event, input) => {
+                if (
+                  input.type === "keyDown" &&
+                  input.control &&
+                  input.shift &&
+                  input.key.toLowerCase() === "i"
+                ) {
+                  event.preventDefault();
+                  popupContents.toggleDevTools();
+                }
+              });
+              popupContents.on("context-menu", (_event, params) => {
+                Menu.buildFromTemplate([
+                  {
+                    label: "Inspecionar",
+                    click: () =>
+                      popupContents.inspectElement(params.x, params.y),
+                  },
+                ]).popup({ window: browser });
+              });
+              return popupContents;
             },
           };
         }

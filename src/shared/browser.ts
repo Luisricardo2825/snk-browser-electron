@@ -10,6 +10,7 @@ export interface BrowserDownload {
   receivedBytes: number;
   totalBytes: number;
   status: "progressing" | "paused" | "completed" | "cancelled" | "interrupted";
+  seen?: boolean;
 }
 export interface SavedUrl {
   folder: string;
@@ -36,6 +37,7 @@ export interface BrowserState {
   downloads: BrowserDownload[];
   downloadDirectory: string;
   downloadDirectoryManaged: boolean;
+  hasUnseenDownload: boolean;
   tabs: BrowserTab[];
   activeTabId: string;
   canGoBack: boolean;
