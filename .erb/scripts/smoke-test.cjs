@@ -1,6 +1,12 @@
 const assert = require("node:assert/strict");
 const { spawn, spawnSync } = require("node:child_process");
-const { existsSync, mkdtempSync, readFileSync, rmSync } = require("node:fs");
+const {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+} = require("node:fs");
 const { createServer } = require("node:http");
 const { tmpdir } = require("node:os");
 const { dirname, join, resolve: resolvePath, sep } = require("node:path");
@@ -11,6 +17,9 @@ const debugPort = Number(process.env.SMOKE_DEBUG_PORT || 9335);
 const windows = process.platform === "win32";
 const packagedApp = process.env.SMOKE_PACKAGED_APP;
 const dataDir = mkdtempSync(join(tmpdir(), "snk-browser-smoke-"));
+const ruffleWasm = readdirSync(
+  resolvePath(__dirname, "../../assets/ruffle/ruffle"),
+).find((name) => name.endsWith(".wasm"));
 const electronVite = resolvePath(
   dirname(require.resolve("electron-vite")),
   "../bin/electron-vite.js",
@@ -405,7 +414,7 @@ async function main() {
   });
   const resource = await siteCommand("Runtime.evaluate", {
     expression:
-      'fetch("snk-ruffle://assets/ruffle/72a20ef1c0b8ceb37720.wasm").then((response) => response.ok && response.headers.get("content-type") === "application/wasm")',
+      `fetch("snk-ruffle://assets/ruffle/${ruffleWasm}").then((response) => response.ok && response.headers.get("content-type") === "application/wasm")`,
     awaitPromise: true,
     returnByValue: true,
   });
