@@ -28,7 +28,7 @@ export async function serveRuffleResources(): Promise<void> {
   protocol.handle("snk-ruffle", (request) => {
     const url = new URL(request.url);
     const name = url.pathname.slice(1);
-    if (url.hostname !== "assets" || !/^[\w.-]+$/.test(name))
+    if (url.hostname !== "assets" || !/^(?:ruffle\/)?[\w.-]+$/.test(name))
       return new Response("Not found", { status: 404 });
     try {
       const bytes = readFileSync(path.join(resourcePath(), name));

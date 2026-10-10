@@ -405,7 +405,7 @@ async function main() {
   });
   const resource = await siteCommand("Runtime.evaluate", {
     expression:
-      'fetch("snk-ruffle://assets/ruffle.js").then((response) => response.ok)',
+      'fetch("snk-ruffle://assets/ruffle/72a20ef1c0b8ceb37720.wasm").then((response) => response.ok && response.headers.get("content-type") === "application/wasm")',
     awaitPromise: true,
     returnByValue: true,
   });
