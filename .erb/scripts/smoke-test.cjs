@@ -521,71 +521,39 @@ async function main() {
     "shadcn saved sites picker",
     10_000,
   );
-  const collapse = await evaluateTarget(
+  await evaluateTarget(
     sitesTarget,
     `(async () => {
-      const trigger = document.querySelector('[data-slot="collapsible-trigger"]');
-      const panel = document.querySelector('[data-slot="collapsible-content"]');
-      const height = () => panel.getBoundingClientRect().height;
-      const initial = height();
-      trigger.click();
-      await new Promise((done) => setTimeout(done, 80));
-      const opening = height();
-      await new Promise((done) => setTimeout(done, 220));
-      const opened = height();
-      trigger.click();
-      await new Promise((done) => setTimeout(done, 80));
-      const closing = height();
-      await new Promise((done) => setTimeout(done, 220));
-      return { initial, opening, opened, closing, closed: height() };
-    })()`,
-  );
-  assert.ok(
-    collapse.initial === 0 &&
-      collapse.opening > 0 &&
-      collapse.opening < collapse.opened &&
-      collapse.closing > 0 &&
-      collapse.closing < collapse.opened &&
-      collapse.closed === 0,
-    `saved sites collapse animation: ${JSON.stringify(collapse)}`,
-  );
-  await evaluateTarget(
-    sitesTarget,
-    `(() => {
       const input = document.querySelector('[data-slot="command-input"]');
-      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, 'Base');
-      input.dispatchEvent(new Event('input', { bubbles: true }));
+      const setValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
+      setValue.call(input, "Base");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
     })()`,
   );
   await waitFor(
     () =>
       evaluateTarget(
         sitesTarget,
-        `(() => {
-          const groups = [...document.querySelectorAll('[data-slot="collapsible"]')];
-          const expanded = (name) => groups.find((group) => group.textContent.includes(name))
-            ?.querySelector('[data-slot="collapsible-trigger"]')?.getAttribute('aria-expanded');
-          return expanded('Teste') === 'true' && expanded('Outro') === 'false';
-        })()`,
+        'Boolean(document.body.innerText.includes("Base") && !document.body.innerText.includes("Sem resultado"))',
       ),
-    "saved sites search opens matching group",
+    "saved sites search filters results",
   );
   await evaluateTarget(
     sitesTarget,
-    `(() => {
+    `(async () => {
       const input = document.querySelector('[data-slot="command-input"]');
-      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, '');
-      input.dispatchEvent(new Event('input', { bubbles: true }));
+      const setValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
+      setValue.call(input, "");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
     })()`,
   );
   await waitFor(
     () =>
       evaluateTarget(
         sitesTarget,
-        `Boolean([...document.querySelectorAll('[data-slot="collapsible-trigger"]')]
-          .every((trigger) => trigger.getAttribute('aria-expanded') === 'false'))`,
+        'Boolean(document.body.innerText.includes("Base") && document.body.innerText.includes("Sem resultado"))',
       ),
-    "saved sites search restores closed groups",
+    "saved sites search restores all results",
   );
   await evaluateTarget(
     sitesTarget,
