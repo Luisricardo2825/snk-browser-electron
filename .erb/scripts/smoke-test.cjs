@@ -348,6 +348,14 @@ async function main() {
   const mainBounds = await evaluate(
     "({x:window.screenX,y:window.screenY,width:window.outerWidth,height:window.outerHeight})",
   );
+  await waitFor(
+    () =>
+      evaluateTarget(
+        downloadsTarget,
+        `window.screenX + window.outerWidth >= ${mainBounds.x + mainBounds.width - 16}`,
+      ),
+    "right-aligned downloads popup",
+  );
   const popupBounds = await evaluateTarget(
     downloadsTarget,
     "({x:window.screenX,y:window.screenY,width:window.outerWidth,height:window.outerHeight})",

@@ -3,7 +3,6 @@ import path from "node:path";
 import type { PopupAnchor, PopupKind } from "@shared/browser";
 import { resolveHtmlPath } from "@main/lib/util";
 import BrowserSettings from "./BrowserSettings";
-import os from "node:os";
 
 export default class BrowserPopups {
   private popupWindow: BrowserWindow | null = null;
@@ -121,9 +120,8 @@ export default class BrowserPopups {
     this.closePopup();
     const dimensions: [number, number] = getPopupDimensions();
     this.popupSize = dimensions;
-    const isLinux = os.platform() === "linux";
     const popup = new BrowserWindow({
-      parent: isLinux ? undefined : this.window,
+      parent: this.window,
       width: dimensions[0],
       height: dimensions[1],
       frame: false,
